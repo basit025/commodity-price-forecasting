@@ -3,6 +3,7 @@ import numpy as np
 import os
 import json
 import warnings
+import joblib
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
@@ -11,7 +12,9 @@ warnings.filterwarnings('ignore')
 
 data_dir = './data'
 results_dir = './results'
+models_dir = './models'
 os.makedirs(results_dir, exist_ok=True)
+os.makedirs(models_dir, exist_ok=True)
 commodities = ['gold', 'silver', 'copper', 'natural_gas', 'crude_oil', 'wheat']
 
 def calculate_metrics(y_true, y_pred, y_true_prev):
@@ -83,6 +86,10 @@ def main():
         lgb_r_ret_preds = lgb_r.predict(X_test)
         lgb_r_price_preds = y_true_prev * (1 + lgb_r_ret_preds)
         lr_mae, lr_rmse, lr_dir = calculate_metrics(y_true_price, lgb_r_price_preds, y_true_prev)
+        
+        # Save the best Return models
+        joblib.dump(xgb_r, os.path.join(models_dir, f'xgb_return_{name}.pkl'))
+        joblib.dump(lgb_r, os.path.join(models_dir, f'lgb_return_{name}.pkl'))
         
         results[name] = {
             'Test_Size': len(y_true_price),

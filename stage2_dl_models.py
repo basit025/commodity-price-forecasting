@@ -9,13 +9,16 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import copy
+import joblib
 
 warnings.filterwarnings('ignore')
 
 # --- Configuration ---
 data_dir = './data'
 results_dir = './results'
+models_dir = './models'
 os.makedirs(results_dir, exist_ok=True)
+os.makedirs(models_dir, exist_ok=True)
 commodities = ['gold', 'silver', 'copper', 'natural_gas', 'crude_oil', 'wheat']
 
 SEQ_LENGTH = 10
@@ -199,6 +202,11 @@ def main():
         trans_ret_preds = predict_model(transformer, X_test_t)
         trans_price_preds = p_c_test_seq * (1 + trans_ret_preds)
         trans_mae, trans_rmse, trans_dir = calculate_metrics(t_p_test_seq, trans_price_preds, p_c_test_seq)
+        
+        # Save Models and Scaler
+        joblib.dump(scaler, os.path.join(models_dir, f'scaler_{name}.pkl'))
+        torch.save(lstm.state_dict(), os.path.join(models_dir, f'lstm_{name}.pt'))
+        torch.save(transformer.state_dict(), os.path.join(models_dir, f'transformer_{name}.pt'))
         
         results[name] = {
             'Test_Size': len(t_p_test_seq),
