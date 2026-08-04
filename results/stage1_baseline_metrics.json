@@ -1,32 +1,32 @@
 {
     "gold": {
-        "MAE": 34.3065,
-        "RMSE": 56.0685,
-        "Directional_Accuracy_%": 3.65
+        "MAE": 34.7,
+        "RMSE": 56.4847,
+        "Directional_Accuracy_%": 3.71
     },
     "silver": {
-        "MAE": 1.0186,
-        "RMSE": 2.2517,
-        "Directional_Accuracy_%": 3.65
+        "MAE": 1.0318,
+        "RMSE": 2.2689,
+        "Directional_Accuracy_%": 3.71
     },
     "copper": {
-        "MAE": 0.0622,
-        "RMSE": 0.0996,
-        "Directional_Accuracy_%": 3.96
+        "MAE": 0.0627,
+        "RMSE": 0.1003,
+        "Directional_Accuracy_%": 4.02
     },
     "natural_gas": {
-        "MAE": 0.1083,
-        "RMSE": 0.2125,
-        "Directional_Accuracy_%": 3.65
+        "MAE": 0.1084,
+        "RMSE": 0.2133,
+        "Directional_Accuracy_%": 3.71
     },
     "crude_oil": {
-        "MAE": 1.3394,
-        "RMSE": 2.1412,
-        "Directional_Accuracy_%": 3.81
+        "MAE": 1.3379,
+        "RMSE": 2.1458,
+        "Directional_Accuracy_%": 3.86
     },
     "wheat": {
-        "MAE": 7.0712,
-        "RMSE": 9.4275,
-        "Directional_Accuracy_%": 6.09
+        "MAE": 7.0537,
+        "RMSE": 9.4363,
+        "Directional_Accuracy_%": 6.18
     }
 }

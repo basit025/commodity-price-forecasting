@@ -10,8 +10,8 @@ from statsmodels.tsa.arima.model import ARIMA
 
 warnings.filterwarnings('ignore')
 
-data_dir = 'p:/ffcproj/data'
-results_dir = 'p:/ffcproj/results'
+data_dir = './data'
+results_dir = './results'
 os.makedirs(results_dir, exist_ok=True)
 commodities = ['gold', 'silver', 'copper', 'natural_gas', 'crude_oil', 'wheat']
 
@@ -49,28 +49,33 @@ def main():
         y_true_prev = np.concatenate([[y_train[-1]], y_test[:-1]])
         
         # --- 1. Prophet Model ---
-        # NOTE: Prophet is notoriously difficult to install on early/alpha Python versions (like 3.14 on Windows)
-        # because it requires a C++ compiler for Stan. We leave the implementation here for when it's supported,
-        # but mock the results for now so the pipeline completes.
-        print("  Training Prophet (Mocked due to environment limits)...")
-        # In a real environment with Prophet installed:
-        # from prophet import Prophet
-        # m = Prophet(daily_seasonality=False)
-        # m.fit(train_df.reset_index()[['Date', 'Close']].rename(columns={'Date':'ds', 'Close':'y'}))
-        # forecast = m.predict(test_df.reset_index()[['Date']].rename(columns={'Date':'ds'}))
-        # prophet_preds = forecast['yhat'].values
-        
-        # Mock Prophet as predicting the mean trend of the training set
-        trend = np.linspace(y_train[0], y_train[-1], len(y_test))
-        p_mae, p_rmse, p_dir = calculate_metrics(y_test, trend, y_true_prev)
+        print("  Training Prophet...")
+        import logging
+        logging.getLogger('prophet').setLevel(logging.WARNING)
+        logging.getLogger('cmdstanpy').disabled = True
+        try:
+            from prophet import Prophet
+            m = Prophet(daily_seasonality=False)
+            p_train = train_df.reset_index()[['Date', 'Close']].rename(columns={'Date':'ds', 'Close':'y'})
+            p_test = test_df.reset_index()[['Date']].rename(columns={'Date':'ds'})
+            m.fit(p_train)
+            forecast = m.predict(p_test)
+            prophet_preds = forecast['yhat'].values
+        except Exception as e:
+            print(f"  Prophet failed: {e}")
+            prophet_preds = np.full(len(y_test), y_train[-1])
+            
+        p_mae, p_rmse, p_dir = calculate_metrics(y_test, prophet_preds, y_true_prev)
         
         # --- 2. ARIMA Model ---
-        print("  Training ARIMA(1,1,1)...")
+        print("  Training ARIMA(1,1,1) (1-step rolling)...")
         try:
             # We use a standard ARIMA(1,1,1) model as a proxy for auto-arima
             arima_model = ARIMA(y_train, order=(1, 1, 1))
             arima_fit = arima_model.fit()
-            arima_preds = arima_fit.forecast(steps=len(y_test))
+            # Append test data without refitting parameters to get rolling 1-step forecasts
+            res_test = arima_fit.append(y_test, refit=False)
+            arima_preds = res_test.fittedvalues[-len(y_test):]
         except Exception as e:
             print(f"  ARIMA failed: {e}")
             arima_preds = np.full(len(y_test), y_train[-1])

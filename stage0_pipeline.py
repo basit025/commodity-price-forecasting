@@ -17,7 +17,7 @@ commodities = {
 start_date = '2014-01-01'
 end_date = pd.Timestamp.today().strftime('%Y-%m-%d')
 
-data_dir = 'p:/ffcproj/data'
+data_dir = './data'
 os.makedirs(data_dir, exist_ok=True)
 
 def clean_and_align_data(df, name):

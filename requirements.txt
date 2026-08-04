@@ -1,0 +1,11 @@
+pandas
+numpy
+yfinance
+ta
+statsmodels
+scikit-learn
+xgboost
+lightgbm
+prophet
+torch
+transformers

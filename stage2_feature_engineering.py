@@ -3,7 +3,7 @@ import numpy as np
 import os
 import ta
 
-data_dir = 'p:/ffcproj/data'
+data_dir = './data'
 commodities = ['gold', 'silver', 'copper', 'natural_gas', 'crude_oil', 'wheat']
 
 def engineer_features(df):
