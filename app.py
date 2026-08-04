@@ -186,7 +186,7 @@ if run_btn:
                 height=700,
                 margin=dict(l=20, r=20, t=40, b=20),
                 legend=dict(
-                    orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                    orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0.01,
                     bgcolor='rgba(21, 25, 35, 0.8)', bordercolor='#232833', borderwidth=1
                 ),
                 xaxis=dict(gridcolor='#232833', showline=True, linewidth=1, linecolor='#232833'),
