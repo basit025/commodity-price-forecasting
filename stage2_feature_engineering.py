@@ -11,62 +11,67 @@ def engineer_features(df):
     df = df.sort_index()
     
     # ---------------------------
-    # Price-based Features
+    # Price-based Features (Stationary)
     # ---------------------------
     df['Return'] = df['Close'].pct_change()
     df['Log_Return'] = np.log(df['Close'] / df['Close'].shift(1))
     
-    df['Lag_1'] = df['Close'].shift(1)
-    df['Lag_2'] = df['Close'].shift(2)
-    df['Lag_3'] = df['Close'].shift(3)
-    df['Lag_5'] = df['Close'].shift(5)
-    df['Lag_10'] = df['Close'].shift(10)
+    # Lags of RETURNS (instead of absolute prices)
+    df['Ret_Lag_1'] = df['Return'].shift(1)
+    df['Ret_Lag_2'] = df['Return'].shift(2)
+    df['Ret_Lag_3'] = df['Return'].shift(3)
+    df['Ret_Lag_5'] = df['Return'].shift(5)
+    df['Ret_Lag_10'] = df['Return'].shift(10)
     
-    df['Daily_Range'] = df['High'] - df['Low']
+    # Daily range as percentage of Close
     df['Daily_Range_Pct'] = (df['High'] - df['Low']) / df['Close']
     
     # ---------------------------
-    # Rolling / Moving Averages
+    # Rolling / Moving Averages (Relative)
     # ---------------------------
-    df['MA_5'] = df['Close'].rolling(window=5).mean()
-    df['MA_10'] = df['Close'].rolling(window=10).mean()
-    df['MA_20'] = df['Close'].rolling(window=20).mean()
-    df['MA_50'] = df['Close'].rolling(window=50).mean()
+    # Calculate ratio of Close price to Moving Average instead of raw absolute MA
+    df['Close_to_MA_5'] = df['Close'] / df['Close'].rolling(window=5).mean()
+    df['Close_to_MA_10'] = df['Close'] / df['Close'].rolling(window=10).mean()
+    df['Close_to_MA_20'] = df['Close'] / df['Close'].rolling(window=20).mean()
+    df['Close_to_MA_50'] = df['Close'] / df['Close'].rolling(window=50).mean()
     
-    df['EMA_10'] = df['Close'].ewm(span=10, adjust=False).mean()
-    df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
+    df['Close_to_EMA_10'] = df['Close'] / df['Close'].ewm(span=10, adjust=False).mean()
+    df['Close_to_EMA_20'] = df['Close'] / df['Close'].ewm(span=20, adjust=False).mean()
     
+    # Rolling standard deviation of RETURNS (already stationary)
     df['Rolling_Std_10'] = df['Return'].rolling(window=10).std()
     df['Rolling_Std_20'] = df['Return'].rolling(window=20).std()
     
     # ---------------------------
-    # Momentum / Technical Indicators
+    # Momentum / Technical Indicators (Stationary)
     # ---------------------------
-    # RSI 14
+    # RSI 14 (already stationary: bounded 0-100)
     df['RSI_14'] = ta.momentum.RSIIndicator(close=df['Close'], window=14).rsi()
     
-    # MACD
+    # MACD Percentage (MACD difference normalized by Close price)
     macd_indicator = ta.trend.MACD(close=df['Close'])
-    # By default ta uses standard parameters: window_fast=12, window_slow=26, window_sign=9
-    df['MACD'] = macd_indicator.macd_diff() # Standard MACD histogram/difference
+    df['MACD_Pct'] = macd_indicator.macd_diff() / df['Close']
     
-    # Volume MA 10
-    df['Volume_MA_10'] = df['Volume'].rolling(window=10).mean()
+    # Volume normalized by its 10-day moving average
+    vol_ma_10 = df['Volume'].rolling(window=10).mean()
+    df['Volume_to_MA_10'] = df['Volume'] / (vol_ma_10 + 1e-9) # add epsilon to avoid div by zero
     
     # ---------------------------
     # Target Columns (What we predict)
     # ---------------------------
     df['Target_Close_Next'] = df['Close'].shift(-1)
     df['Target_Return_Next'] = df['Return'].shift(-1)
-    # Direction: 1 if next day's return > 0 else 0
-    # Note: Using > 0 strictly means exactly 0 return is class 0.
+    
     df['Target_Direction'] = (df['Target_Return_Next'] > 0).astype(int)
-    # Correct the last row where Target_Return_Next is NaN, so Target_Direction should also be NaN
+    # Correct the last row where Target_Return_Next is NaN
     df.loc[df['Target_Return_Next'].isna(), 'Target_Direction'] = np.nan
     
     return df
 
 def main():
+    # Since we are modifying the base features, we should start fresh from the stage 0 raw data
+    # But since stage 0 data is overwritten, we just run on the existing CSVs which still have 
+    # Open, High, Low, Close, Adj Close, Volume columns intact.
     for name in commodities:
         file_path = os.path.join(data_dir, f"{name}.csv")
         if not os.path.exists(file_path):
@@ -76,7 +81,11 @@ def main():
         print(f"Processing {name}...")
         df = pd.read_csv(file_path, index_col='Date', parse_dates=True)
         
-        # We assume the OHLCV columns are already there from Stage 0
+        # Keep only the base raw columns in case this script is run multiple times
+        base_cols = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
+        df = df[base_cols]
+        
+        # Engineer the new stationary features
         df = engineer_features(df)
         
         # Check rows before drop
@@ -95,7 +104,7 @@ def main():
             except OSError:
                 pass
         df.to_csv(file_path)
-        print(f"Saved {name}.csv with technical features.")
+        print(f"Saved {name}.csv with completely stationary technical features.")
         print("-" * 50)
 
 if __name__ == "__main__":

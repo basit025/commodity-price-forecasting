@@ -1,4 +1,4 @@
-c{
+{
     "gold": {
         "Test_Size": 647,
         "Naive": {
@@ -7,14 +7,14 @@ c{
             "Dir_Acc": 3.71
         },
         "Prophet": {
-            "MAE": 1643.7588,
-            "RMSE": 1795.5012,
-            "Dir_Acc": 41.27
+            "MAE": 1227.2303,
+            "RMSE": 1482.7127,
+            "Dir_Acc": 41.58
         },
         "ARIMA": {
-            "MAE": 1312.1366,
-            "RMSE": 1590.7384,
-            "Dir_Acc": 41.11
+            "MAE": 34.7186,
+            "RMSE": 56.4191,
+            "Dir_Acc": 50.39
         }
     },
     "silver": {
@@ -25,14 +25,14 @@ c{
             "Dir_Acc": 3.71
         },
         "Prophet": {
-            "MAE": 22.4984,
-            "RMSE": 29.8135,
-            "Dir_Acc": 42.04
+            "MAE": 20.3038,
+            "RMSE": 28.0707,
+            "Dir_Acc": 42.5
         },
         "ARIMA": {
-            "MAE": 22.0167,
-            "RMSE": 29.6046,
-            "Dir_Acc": 42.35
+            "MAE": 1.0371,
+            "RMSE": 2.2617,
+            "Dir_Acc": 51.16
         }
     },
     "copper": {
@@ -43,14 +43,14 @@ c{
             "Dir_Acc": 4.02
         },
         "Prophet": {
-            "MAE": 1.5208,
-            "RMSE": 1.6259,
-            "Dir_Acc": 44.82
+            "MAE": 1.6576,
+            "RMSE": 1.9034,
+            "Dir_Acc": 44.98
         },
         "ARIMA": {
-            "MAE": 1.1643,
-            "RMSE": 1.381,
-            "Dir_Acc": 44.51
+            "MAE": 0.0624,
+            "RMSE": 0.1001,
+            "Dir_Acc": 53.32
         }
     },
     "natural_gas": {
@@ -61,14 +61,14 @@ c{
             "Dir_Acc": 3.71
         },
         "Prophet": {
-            "MAE": 1.0501,
-            "RMSE": 1.3286,
-            "Dir_Acc": 47.76
+            "MAE": 3.9994,
+            "RMSE": 4.5504,
+            "Dir_Acc": 47.91
         },
         "ARIMA": {
-            "MAE": 1.1383,
-            "RMSE": 1.3531,
-            "Dir_Acc": 46.68
+            "MAE": 0.109,
+            "RMSE": 0.2125,
+            "Dir_Acc": 49.46
         }
     },
     "crude_oil": {
@@ -79,14 +79,14 @@ c{
             "Dir_Acc": 3.86
         },
         "Prophet": {
-            "MAE": 17.8756,
-            "RMSE": 18.6348,
-            "Dir_Acc": 47.14
+            "MAE": 13.8102,
+            "RMSE": 19.5838,
+            "Dir_Acc": 48.22
         },
         "ARIMA": {
-            "MAE": 9.1783,
-            "RMSE": 11.402,
-            "Dir_Acc": 49.77
+            "MAE": 1.3389,
+            "RMSE": 2.1433,
+            "Dir_Acc": 50.54
         }
     },
     "wheat": {
@@ -97,14 +97,14 @@ c{
             "Dir_Acc": 6.18
         },
         "Prophet": {
-            "MAE": 90.7572,
-            "RMSE": 99.1816,
-            "Dir_Acc": 47.14
+            "MAE": 293.9378,
+            "RMSE": 335.4862,
+            "Dir_Acc": 49.0
         },
         "ARIMA": {
-            "MAE": 53.8943,
-            "RMSE": 60.8135,
-            "Dir_Acc": 49.0
+            "MAE": 7.1049,
+            "RMSE": 9.43,
+            "Dir_Acc": 48.22
         }
     }
 }
