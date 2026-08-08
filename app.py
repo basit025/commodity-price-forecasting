@@ -375,6 +375,31 @@ with st.spinner("AI Models Computing Consensus..."):
                     box-shadow: 0 0 12px {signal_color}, 0 0 24px {signal_color}; 
                     border-radius: 2px;
                     transition: left 1s cubic-bezier(0.4, 0, 0.2, 1);
+                    cursor: pointer;
+                }}
+                .glow-marker::after {{
+                    content: attr(data-price);
+                    position: absolute;
+                    bottom: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #252525;
+                    color: white;
+                    padding: 6px 10px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    white-space: nowrap;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease, bottom 0.2s ease;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                    z-index: 10;
+                }}
+                .glow-marker:hover::after {{
+                    opacity: 1;
+                    bottom: 35px;
                 }}
                 .sub-card {{
                     flex: 1; background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px;
@@ -411,7 +436,7 @@ with st.spinner("AI Models Computing Consensus..."):
                 
                 <div style="position: relative; width: 100%; height: 6px; background-color: #2D3748; border-radius: 4px; margin-bottom: 30px; overflow: visible;">
                     <div style="position: absolute; left: 10%; right: 10%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); border-radius: 4px;"></div>
-                    <div class="glow-marker" style="left: {marker_pos}%;"></div>
+                    <div class="glow-marker" style="left: {marker_pos}%;" data-price="${result['predicted_price']:,.2f}"></div>
                 </div>
                 
                 <!-- Sub-cards -->
