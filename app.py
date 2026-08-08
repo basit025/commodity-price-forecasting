@@ -112,14 +112,14 @@ COMMODITIES = {
 }
 
 HORIZONS = {
-    '1 Day (Tomorrow)': 1,
-    '7 Days (1 Week)': 7,
-    '14 Days (2 Weeks)': 14,
-    '28 Days (1 Month)': 28,
-    '42 Days (1.5 Months)': 42,
-    '60 Days (2 Months)': 60,
-    '90 Days (1 Quarter)': 90,
-    '120 Days (Half Year)': 120
+    '1D': 1,
+    '7D': 7,
+    '14D': 14,
+    '1M': 28,
+    '6W': 42,
+    '2M': 60,
+    '1Q': 90,
+    '4M': 120
 }
 
 # --- HELPER FUNCTIONS ---
@@ -203,21 +203,37 @@ st.title("⚡ FundForge AI Terminal")
 
 # 2. Sidebar Controls
 with st.sidebar:
-    st.header("Terminal Controls")
+    st.markdown("""
+        <div style='margin-bottom: 20px;'>
+            <h2 style='color: #FAFAFA; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px;'>🎛️ Terminal Controls</h2>
+        </div>
+    """, unsafe_allow_html=True)
     
-    selected_name = st.selectbox("Select Asset", list(COMMODITIES.keys()), index=0)
+    selected_name = st.radio(
+        "Select Asset",
+        options=list(COMMODITIES.keys()),
+        index=0
+    )
     selected_key = COMMODITIES[selected_name]
     
-    selected_horizon_name = st.selectbox("Select Investment Horizon", list(HORIZONS.keys()), index=5) # Default 60d
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    selected_horizon_name = st.select_slider(
+        "Investment Horizon",
+        options=list(HORIZONS.keys()),
+        value='2M'
+    )
     selected_horizon = HORIZONS[selected_horizon_name]
     
     st.markdown("---")
     st.markdown("""
-    ### System Status
-    🟢 Deep Learning Backend: **Online**  
-    🟢 Machine Learning Backend: **Online**  
-    🟢 Ensemble Engine: **Active**
-    """)
+    <div style='background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);'>
+        <div style='color: #8B949E; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;'>System Status</div>
+        <div style='font-size: 13px; margin-bottom: 8px;'>🟢 DL Backend: <b style='color: white;'>Online</b></div>
+        <div style='font-size: 13px; margin-bottom: 8px;'>🟢 ML Backend: <b style='color: white;'>Online</b></div>
+        <div style='font-size: 13px;'>🟢 Ensemble Engine: <b style='color: #00FF7F;'>Active</b></div>
+    </div>
+    """, unsafe_allow_html=True)
     st.caption("v2.1.0 Production")
 
 # 3. Main Logic (Instant Execution)
