@@ -162,36 +162,35 @@ def generate_market_drivers(historical_df):
     drivers = []
     latest = historical_df.iloc[-1]
     
-    # Check if Macro columns exist, fallback if not
     if 'RSI_14' in historical_df.columns:
-        if latest['RSI_14'] > 70:
+        if latest['RSI_14'] > 65:
             drivers.append(("RSI approaching overbought", "-"))
-        elif latest['RSI_14'] < 30:
+        elif latest['RSI_14'] < 35:
             drivers.append(("RSI heavily oversold", "+"))
             
-    if 'Close' in historical_df.columns and 'SMA_50' in historical_df.columns:
-        if latest['Close'] > latest['SMA_50']:
+    if 'Close_to_MA_50' in historical_df.columns:
+        if latest['Close_to_MA_50'] > 1.0:
             drivers.append(("Price above 50-day moving average", "+"))
         else:
             drivers.append(("Price below 50-day moving average", "-"))
             
-    if 'Macro_DXY' in historical_df.columns:
-        dxy_5_days_ago = historical_df.iloc[-6]['Macro_DXY'] if len(historical_df) > 5 else latest['Macro_DXY']
-        if latest['Macro_DXY'] < dxy_5_days_ago:
+    if 'USD_Index' in historical_df.columns:
+        dxy_5_days_ago = historical_df.iloc[-6]['USD_Index'] if len(historical_df) > 5 else latest['USD_Index']
+        if latest['USD_Index'] < dxy_5_days_ago:
             drivers.append(("USD Index weakening", "+"))
-        elif latest['Macro_DXY'] > dxy_5_days_ago:
+        elif latest['USD_Index'] > dxy_5_days_ago:
             drivers.append(("USD Index strengthening", "-"))
             
-    if 'Macro_US10Y' in historical_df.columns:
-        us10y_5_days_ago = historical_df.iloc[-6]['Macro_US10Y'] if len(historical_df) > 5 else latest['Macro_US10Y']
-        if latest['Macro_US10Y'] < us10y_5_days_ago:
-            drivers.append(("Real 10Y yield falling", "+"))
-        elif latest['Macro_US10Y'] > us10y_5_days_ago:
-            drivers.append(("Real 10Y yield rising", "-"))
+    if 'US_10Y_Yield' in historical_df.columns:
+        us10y_5_days_ago = historical_df.iloc[-6]['US_10Y_Yield'] if len(historical_df) > 5 else latest['US_10Y_Yield']
+        if latest['US_10Y_Yield'] < us10y_5_days_ago:
+            drivers.append(("Treasury yields falling", "+"))
+        elif latest['US_10Y_Yield'] > us10y_5_days_ago:
+            drivers.append(("Treasury yields rising", "-"))
             
-    # Default fallbacks if no specific conditions triggered
-    if len(drivers) == 0:
-         drivers.append(("Normal market volatility", "+"))
+    if 'VIX' in historical_df.columns:
+        if latest['VIX'] > 20:
+            drivers.append(("High macro volatility (VIX > 20)", "-"))
          
     # Take top 3
     return drivers[:3]
@@ -429,9 +428,9 @@ with st.spinner("AI Models Computing Consensus..."):
                 
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
                 
-                <!-- Top Drivers -->
+                {f'''<!-- Top Drivers -->
                 <div style="color: #8B949E; font-size: 13px; margin-bottom: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Primary Market Drivers</div>
-                {driver_html}
+                {driver_html}''' if driver_html else ""}
             </div>
             """
             
