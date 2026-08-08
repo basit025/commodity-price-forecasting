@@ -309,9 +309,9 @@ with st.spinner("AI Models Computing Consensus..."):
             for driver_text, sentiment in drivers:
                 color = "#00FF7F" if sentiment == "+" else "#FF4136"
                 driver_html += f'''
-<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+<div class="driver-item">
     <span style="color: #E2E8F0; font-weight: 500;">{driver_text}</span>
-    <span style="color: {color}; font-weight: bold;">{sentiment}</span>
+    <span style="color: {color}; font-weight: 900; font-size: 18px; line-height: 1;">{sentiment}</span>
 </div>
 '''
                 
@@ -338,53 +338,99 @@ with st.spinner("AI Models Computing Consensus..."):
             marker_pos = max(0, min(100, marker_pos)) # clamp between 0 and 100
             
             confidence = result.get('confidence_pct', 72.0)
+            pred_move_pct = result['predicted_return'] * 100
+            pred_move_sign = "+" if pred_move_pct >= 0 else ""
             
-            # Custom Premium Card HTML (dedented)
+            # Custom Premium Card HTML
             card_html = f"""
-            <div style="background-color: #1E1E1E; border-radius: 16px; padding: 24px; border: 1px solid #333; font-family: 'Inter', sans-serif;">
+            <style>
+                .premium-card {{
+                    background: linear-gradient(145deg, #1A1C23 0%, #111318 100%);
+                    border-radius: 16px;
+                    padding: 24px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    font-family: 'Inter', sans-serif;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                }}
+                .premium-card:hover {{
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }}
+                .driver-item {{
+                    display: flex; justify-content: space-between; align-items: center; 
+                    margin-bottom: 10px; padding: 12px 16px; 
+                    background: rgba(255,255,255,0.03); 
+                    border-radius: 8px; transition: all 0.2s ease;
+                    font-size: 14px;
+                }}
+                .driver-item:hover {{
+                    background: rgba(255,255,255,0.08);
+                    transform: scale(1.02);
+                    border-left: 3px solid {signal_color};
+                }}
+                .glow-marker {{
+                    position: absolute; top: -8px; height: 22px; width: 4px; 
+                    background-color: {signal_color}; 
+                    box-shadow: 0 0 12px {signal_color}, 0 0 24px {signal_color}; 
+                    border-radius: 2px;
+                    transition: left 1s cubic-bezier(0.4, 0, 0.2, 1);
+                }}
+                .sub-card {{
+                    flex: 1; background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px;
+                    border: 1px solid rgba(255,255,255,0.02);
+                    transition: background 0.3s ease;
+                }}
+                .sub-card:hover {{
+                    background: rgba(0,0,0,0.5);
+                }}
+            </style>
+            
+            <div class="premium-card">
                 <!-- Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <h2 style="margin: 0; color: white; font-size: 22px;">{selected_name}</h2>
-                    <div style="background-color: {badge_bg}; color: {badge_color}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                    <h2 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">{selected_name}</h2>
+                    <div style="background-color: {badge_bg}; color: {badge_color}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; box-shadow: 0 0 10px {badge_bg};">
                         {badge_icon}
                     </div>
                 </div>
-                <div style="color: #A0AEC0; font-size: 14px; margin-bottom: 24px;">{selected_horizon}-day forecast</div>
+                <div style="color: #8B949E; font-size: 14px; margin-bottom: 24px; font-weight: 500;">{selected_horizon}-Day AI Forecast</div>
                 
                 <!-- Current Price -->
-                <div style="display: flex; align-items: baseline; margin-bottom: 24px;">
-                    <span style="font-size: 36px; font-weight: bold; color: white;">${result['current_price']:,.2f}</span>
-                    <span style="color: #A0AEC0; font-size: 14px; margin-left: 8px;">current close</span>
+                <div style="display: flex; align-items: baseline; margin-bottom: 30px;">
+                    <span style="font-size: 42px; font-weight: 800; color: white; letter-spacing: -1px;">${result['current_price']:,.2f}</span>
+                    <span style="color: #8B949E; font-size: 15px; margin-left: 10px; font-weight: 500;">current close</span>
                 </div>
                 
                 <!-- Predicted Range Visualizer -->
-                <div style="display: flex; justify-content: space-between; color: #A0AEC0; font-size: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; color: #8B949E; font-size: 13px; margin-bottom: 10px; font-weight: 600;">
                     <span>${visual_min:,.2f}</span>
-                    <span>Predicted range</span>
+                    <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Predicted Range</span>
                     <span>${visual_max:,.2f}</span>
                 </div>
                 
-                <div style="position: relative; width: 100%; height: 8px; background-color: #2D3748; border-radius: 4px; margin-bottom: 24px;">
-                    <div style="position: absolute; left: 10%; right: 10%; height: 100%; background-color: rgba(0, 255, 127, 0.2); border-radius: 4px;"></div>
-                    <div style="position: absolute; left: {marker_pos}%; top: -6px; height: 20px; width: 3px; background-color: {signal_color}; box-shadow: 0 0 8px {signal_color}; border-radius: 2px;"></div>
+                <div style="position: relative; width: 100%; height: 6px; background-color: #2D3748; border-radius: 4px; margin-bottom: 30px; overflow: visible;">
+                    <div style="position: absolute; left: 10%; right: 10%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); border-radius: 4px;"></div>
+                    <div class="glow-marker" style="left: {marker_pos}%;"></div>
                 </div>
                 
                 <!-- Sub-cards -->
-                <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                    <div style="flex: 1; background-color: #252525; padding: 16px; border-radius: 12px;">
-                        <div style="color: #A0AEC0; font-size: 12px; margin-bottom: 4px;">Confidence</div>
-                        <div style="color: white; font-size: 20px; font-weight: bold;">{confidence:.1f}%</div>
+                <div style="display: flex; gap: 16px; margin-bottom: 28px;">
+                    <div class="sub-card">
+                        <div style="color: #8B949E; font-size: 13px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Confidence</div>
+                        <div style="color: white; font-size: 24px; font-weight: 800;">{confidence:.1f}%</div>
                     </div>
-                    <div style="flex: 1; background-color: #252525; padding: 16px; border-radius: 12px;">
-                        <div style="color: #A0AEC0; font-size: 12px; margin-bottom: 4px;">Model used</div>
-                        <div style="color: white; font-size: 20px; font-weight: bold;">Ensemble</div>
+                    <div class="sub-card" style="border-bottom: 3px solid {signal_color};">
+                        <div style="color: #8B949E; font-size: 13px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Projected Move</div>
+                        <div style="color: {signal_color}; font-size: 24px; font-weight: 800;">{pred_move_sign}{pred_move_pct:.2f}%</div>
                     </div>
                 </div>
                 
-                <hr style="border: none; border-top: 1px solid #333; margin-bottom: 16px;">
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
                 
                 <!-- Top Drivers -->
-                <div style="color: #A0AEC0; font-size: 14px; margin-bottom: 16px;">Top drivers this week</div>
+                <div style="color: #8B949E; font-size: 13px; margin-bottom: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Primary Market Drivers</div>
                 {driver_html}
             </div>
             """
