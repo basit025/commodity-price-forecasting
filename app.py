@@ -98,6 +98,43 @@ st.markdown("""
         font-weight: bold;
         color: #FFFFFF;
     }
+    
+    /* Custom Interactive Pills */
+    div[data-testid="stPills"] {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    div[data-testid="stPills"] label {
+        display: none !important;
+    }
+    div[data-testid="stPills"] div[role="radiogroup"] {
+        justify-content: center;
+        gap: 12px;
+    }
+    div[data-testid="stPills"] button {
+        padding: 12px 28px !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        border-radius: 30px !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        color: #E2E8F0 !important;
+        transition: all 0.3s ease !important;
+        letter-spacing: 0.5px !important;
+    }
+    div[data-testid="stPills"] button:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    div[data-testid="stPills"] button[aria-checked="true"], 
+    div[data-testid="stPills"] button[data-checked="true"] {
+        background: linear-gradient(135deg, #00E676 0%, #00B85C 100%) !important;
+        color: #0E1117 !important;
+        box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
+        border: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -203,44 +240,32 @@ st.markdown(get_ticker_data(), unsafe_allow_html=True)
 
 # 2. Main Terminal Controls
 st.markdown("<br>", unsafe_allow_html=True)
-col_ctrl, col_sys = st.columns([3, 1])
 
-with col_ctrl:
-    st.markdown("<div style='color: #8B949E; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;'>Select Asset</div>", unsafe_allow_html=True)
-    selected_name = st.pills(
-        "Asset",
-        options=list(COMMODITIES.keys()),
-        default=list(COMMODITIES.keys())[0],
-        selection_mode="single",
-        label_visibility="collapsed"
-    )
-    if not selected_name:
-        selected_name = list(COMMODITIES.keys())[0]
-    selected_key = COMMODITIES[selected_name]
-    
-    st.markdown("<div style='color: #8B949E; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; margin-top: 15px;'>Investment Horizon</div>", unsafe_allow_html=True)
-    selected_horizon_name = st.pills(
-        "Horizon",
-        options=list(HORIZONS.keys()),
-        default='2M',
-        selection_mode="single",
-        label_visibility="collapsed"
-    )
-    if not selected_horizon_name:
-        selected_horizon_name = '2M'
-    selected_horizon = HORIZONS[selected_horizon_name]
+st.markdown("<div style='text-align: center; color: #8B949E; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>Select Asset</div>", unsafe_allow_html=True)
+selected_name = st.pills(
+    "Asset",
+    options=list(COMMODITIES.keys()),
+    default=list(COMMODITIES.keys())[0],
+    selection_mode="single",
+    label_visibility="collapsed"
+)
+if not selected_name:
+    selected_name = list(COMMODITIES.keys())[0]
+selected_key = COMMODITIES[selected_name]
 
-with col_sys:
-    st.markdown("""
-    <div style='background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); height: 100%; display: flex; flex-direction: column; justify-content: center;'>
-        <div style='color: #8B949E; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;'>System Status</div>
-        <div style='font-size: 13px; margin-bottom: 8px;'>🟢 DL Backend: <b style='color: white;'>Online</b></div>
-        <div style='font-size: 13px; margin-bottom: 8px;'>🟢 ML Backend: <b style='color: white;'>Online</b></div>
-        <div style='font-size: 13px;'>🟢 Ensemble Engine: <b style='color: #00FF7F;'>Active</b></div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; color: #8B949E; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 25px;'>Investment Horizon</div>", unsafe_allow_html=True)
+selected_horizon_name = st.pills(
+    "Horizon",
+    options=list(HORIZONS.keys()),
+    default='2M',
+    selection_mode="single",
+    label_visibility="collapsed"
+)
+if not selected_horizon_name:
+    selected_horizon_name = '2M'
+selected_horizon = HORIZONS[selected_horizon_name]
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 # 3. Main Logic (Instant Execution)
 with st.spinner("AI Models Computing Consensus..."):
