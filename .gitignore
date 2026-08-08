@@ -10,5 +10,3 @@ env/
 .venv/
 .env
 models/
-results/
-data/

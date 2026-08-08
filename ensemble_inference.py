@@ -12,7 +12,7 @@ from catboost import CatBoostRegressor
 from inference_utils import LSTMModel, GRUModel, TransformerModel, NBeatsModel, TFTModel
 
 # Configuration
-MODELS_DIR = './models'
+MODELS_DIR = './models_production'
 RESULTS_DIR = './results'
 DATA_DIR = './data'
 
