@@ -157,6 +157,45 @@ def get_chart_data(commodity_key):
     df = df.sort_values('Date').tail(90)
     return df
 
+def generate_market_drivers(historical_df):
+    """Generates dynamic market driver text based on the latest data row."""
+    drivers = []
+    latest = historical_df.iloc[-1]
+    
+    # Check if Macro columns exist, fallback if not
+    if 'RSI_14' in historical_df.columns:
+        if latest['RSI_14'] > 70:
+            drivers.append(("RSI approaching overbought", "-"))
+        elif latest['RSI_14'] < 30:
+            drivers.append(("RSI heavily oversold", "+"))
+            
+    if 'Close' in historical_df.columns and 'SMA_50' in historical_df.columns:
+        if latest['Close'] > latest['SMA_50']:
+            drivers.append(("Price above 50-day moving average", "+"))
+        else:
+            drivers.append(("Price below 50-day moving average", "-"))
+            
+    if 'Macro_DXY' in historical_df.columns:
+        dxy_5_days_ago = historical_df.iloc[-6]['Macro_DXY'] if len(historical_df) > 5 else latest['Macro_DXY']
+        if latest['Macro_DXY'] < dxy_5_days_ago:
+            drivers.append(("USD Index weakening", "+"))
+        elif latest['Macro_DXY'] > dxy_5_days_ago:
+            drivers.append(("USD Index strengthening", "-"))
+            
+    if 'Macro_US10Y' in historical_df.columns:
+        us10y_5_days_ago = historical_df.iloc[-6]['Macro_US10Y'] if len(historical_df) > 5 else latest['Macro_US10Y']
+        if latest['Macro_US10Y'] < us10y_5_days_ago:
+            drivers.append(("Real 10Y yield falling", "+"))
+        elif latest['Macro_US10Y'] > us10y_5_days_ago:
+            drivers.append(("Real 10Y yield rising", "-"))
+            
+    # Default fallbacks if no specific conditions triggered
+    if len(drivers) == 0:
+         drivers.append(("Normal market volatility", "+"))
+         
+    # Take top 3
+    return drivers[:3]
+
 # --- UI RENDERING ---
 
 # 1. Ticker Tape Header
@@ -262,24 +301,95 @@ with st.spinner("AI Models Computing Consensus..."):
         with col2:
             st.subheader("Actionable Telemetry")
             
-            # Custom Metric Cards
-            st.markdown(f"""
-            <div class="metric-container">
-                <div class="metric-title">Current Price</div>
-                <div class="metric-value">${result['current_price']:.2f}</div>
-            </div>
+            import textwrap
             
-            <div class="metric-container">
-                <div class="metric-title">AI Projected Price ({selected_horizon} Trading Days)</div>
-                <div class="metric-value">${result['predicted_price']:.2f}</div>
-            </div>
+            # Generate Dynamic Drivers
+            drivers = generate_market_drivers(historical_df)
+            driver_html = ""
+            for driver_text, sentiment in drivers:
+                color = "#00FF7F" if sentiment == "+" else "#FF4136"
+                driver_html += f'''
+<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+    <span style="color: #E2E8F0; font-weight: 500;">{driver_text}</span>
+    <span style="color: {color}; font-weight: bold;">{sentiment}</span>
+</div>
+'''
+                
+            # Dynamic Pill Badge
+            badge_bg = "rgba(0, 255, 127, 0.1)" if is_up else "rgba(255, 65, 54, 0.1)"
+            badge_color = "#00FF7F" if is_up else "#FF4136"
+            badge_icon = "📈 Bullish" if is_up else "📉 Bearish"
             
-            <div class="metric-container" style="border-left: 4px solid {signal_color};">
-                <div class="metric-title">Algorithmic Signal</div>
-                <div class="metric-value" style="color: {signal_color};">{signal_text}</div>
-                <div class="metric-title" style="margin-top: 5px;">Projected Move: {result['predicted_return']*100:+.2f}%</div>
+            # Range logic
+            p_min = result.get('predicted_min', result['predicted_price'] * 0.98)
+            p_max = result.get('predicted_max', result['predicted_price'] * 1.02)
+            c_price = result['current_price']
+            
+            # Ensure p_min is the absolute minimum and p_max is absolute maximum
+            visual_min = min(p_min, c_price)
+            visual_max = max(p_max, c_price)
+            
+            # Prevent div by zero
+            if visual_max == visual_min:
+                visual_max += 0.01
+                
+            # Calculate marker position (0 to 100%)
+            marker_pos = ((result['predicted_price'] - visual_min) / (visual_max - visual_min)) * 100
+            marker_pos = max(0, min(100, marker_pos)) # clamp between 0 and 100
+            
+            confidence = result.get('confidence_pct', 72.0)
+            
+            # Custom Premium Card HTML (dedented)
+            card_html = textwrap.dedent(f"""
+            <div style="background-color: #1E1E1E; border-radius: 16px; padding: 24px; border: 1px solid #333; font-family: 'Inter', sans-serif;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <h2 style="margin: 0; color: white; font-size: 22px;">{selected_name}</h2>
+                    <div style="background-color: {badge_bg}; color: {badge_color}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                        {badge_icon}
+                    </div>
+                </div>
+                <div style="color: #A0AEC0; font-size: 14px; margin-bottom: 24px;">{selected_horizon}-day forecast</div>
+                
+                <!-- Current Price -->
+                <div style="display: flex; align-items: baseline; margin-bottom: 24px;">
+                    <span style="font-size: 36px; font-weight: bold; color: white;">${result['current_price']:,.2f}</span>
+                    <span style="color: #A0AEC0; font-size: 14px; margin-left: 8px;">current close</span>
+                </div>
+                
+                <!-- Predicted Range Visualizer -->
+                <div style="display: flex; justify-content: space-between; color: #A0AEC0; font-size: 12px; margin-bottom: 8px;">
+                    <span>${visual_min:,.2f}</span>
+                    <span>Predicted range</span>
+                    <span>${visual_max:,.2f}</span>
+                </div>
+                
+                <div style="position: relative; width: 100%; height: 8px; background-color: #2D3748; border-radius: 4px; margin-bottom: 24px;">
+                    <div style="position: absolute; left: 10%; right: 10%; height: 100%; background-color: rgba(0, 255, 127, 0.2); border-radius: 4px;"></div>
+                    <div style="position: absolute; left: {marker_pos}%; top: -6px; height: 20px; width: 3px; background-color: {signal_color}; box-shadow: 0 0 8px {signal_color}; border-radius: 2px;"></div>
+                </div>
+                
+                <!-- Sub-cards -->
+                <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                    <div style="flex: 1; background-color: #252525; padding: 16px; border-radius: 12px;">
+                        <div style="color: #A0AEC0; font-size: 12px; margin-bottom: 4px;">Confidence</div>
+                        <div style="color: white; font-size: 20px; font-weight: bold;">{confidence:.1f}%</div>
+                    </div>
+                    <div style="flex: 1; background-color: #252525; padding: 16px; border-radius: 12px;">
+                        <div style="color: #A0AEC0; font-size: 12px; margin-bottom: 4px;">Model used</div>
+                        <div style="color: white; font-size: 20px; font-weight: bold;">Ensemble</div>
+                    </div>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #333; margin-bottom: 16px;">
+                
+                <!-- Top Drivers -->
+                <div style="color: #A0AEC0; font-size: 14px; margin-bottom: 16px;">Top drivers this week</div>
+                {driver_html}
             </div>
-            """, unsafe_allow_html=True)
+            """)
+            
+            st.markdown(card_html, unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             

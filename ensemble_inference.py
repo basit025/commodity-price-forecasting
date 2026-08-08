@@ -186,6 +186,13 @@ def ensemble_predict(commodity, horizon, top_n=3):
     final_price = current_price * (1 + final_return)
     direction = "UP 🟢" if final_return > 0 else "DOWN 🔴"
     
+    all_returns = list(predictions.values())
+    min_return = min(all_returns)
+    max_return = max(all_returns)
+    predicted_min = current_price * (1 + min_return)
+    predicted_max = current_price * (1 + max_return)
+    confidence_pct = total_weight / len(predictions) if len(predictions) > 0 else 0
+    
     print(f"\\n✅ FINAL ENSEMBLE PREDICTION ({horizon} Days Out)")
     print(f"Consensus Return : {final_return * 100:.2f}%")
     print(f"Target Price     : ${final_price:.4f}")
@@ -197,6 +204,9 @@ def ensemble_predict(commodity, horizon, top_n=3):
         'current_price': current_price,
         'predicted_price': final_price,
         'predicted_return': final_return,
+        'predicted_min': predicted_min,
+        'predicted_max': predicted_max,
+        'confidence_pct': confidence_pct,
         'direction': direction,
         'models_used': [m[0] for m in top_models]
     }
