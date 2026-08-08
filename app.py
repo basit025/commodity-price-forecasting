@@ -102,16 +102,32 @@ st.markdown("""
     /* Custom Interactive Pills */
     div[data-testid="stPills"] {
         display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+        width: 100%;
     }
-    div[data-testid="stPills"] label {
-        display: none !important;
+    div[data-testid="stPills"] [data-testid="stWidgetLabel"] {
+        display: flex !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        margin-bottom: 12px;
+    }
+    div[data-testid="stPills"] [data-testid="stWidgetLabel"] p {
+        color: #8B949E !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        text-align: center !important;
+        margin: 0 auto !important;
     }
     div[data-testid="stPills"] div[role="radiogroup"] {
-        justify-content: center;
+        justify-content: center !important;
         gap: 12px;
+        flex-wrap: wrap;
+        width: 100%;
     }
     div[data-testid="stPills"] button {
         padding: 12px 28px !important;
@@ -241,25 +257,23 @@ st.markdown(get_ticker_data(), unsafe_allow_html=True)
 # 2. Main Terminal Controls
 st.markdown("<br>", unsafe_allow_html=True)
 
-st.markdown("<div style='text-align: center; color: #8B949E; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>Select Asset</div>", unsafe_allow_html=True)
 selected_name = st.pills(
-    "Asset",
+    "Select Asset",
     options=list(COMMODITIES.keys()),
     default=list(COMMODITIES.keys())[0],
     selection_mode="single",
-    label_visibility="collapsed"
+    label_visibility="visible"
 )
 if not selected_name:
     selected_name = list(COMMODITIES.keys())[0]
 selected_key = COMMODITIES[selected_name]
 
-st.markdown("<div style='text-align: center; color: #8B949E; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 25px;'>Investment Horizon</div>", unsafe_allow_html=True)
 selected_horizon_name = st.pills(
-    "Horizon",
+    "Investment Horizon",
     options=list(HORIZONS.keys()),
     default='2M',
     selection_mode="single",
-    label_visibility="collapsed"
+    label_visibility="visible"
 )
 if not selected_horizon_name:
     selected_horizon_name = '2M'
