@@ -33,8 +33,8 @@ st.markdown("""
         background-color: #1A1C23;
         padding-left: 100%;
         box-sizing: content-box;
+        border-top: 1px solid #333;
         border-bottom: 1px solid #333;
-        margin-top: -2rem;
         margin-bottom: 2rem;
         white-space: nowrap;
     }
@@ -197,9 +197,9 @@ def generate_market_drivers(historical_df):
 
 # --- UI RENDERING ---
 
-# 1. Ticker Tape Header
-st.markdown(get_ticker_data(), unsafe_allow_html=True)
+# 1. Header & Ticker Tape
 st.title("⚡ FundForge AI Terminal")
+st.markdown(get_ticker_data(), unsafe_allow_html=True)
 
 # 2. Main Terminal Controls
 st.markdown("<br>", unsafe_allow_html=True)
