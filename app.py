@@ -340,7 +340,7 @@ with st.spinner("AI Models Computing Consensus..."):
             confidence = result.get('confidence_pct', 72.0)
             
             # Custom Premium Card HTML (dedented)
-            card_html = textwrap.dedent(f"""
+            card_html = f"""
             <div style="background-color: #1E1E1E; border-radius: 16px; padding: 24px; border: 1px solid #333; font-family: 'Inter', sans-serif;">
                 <!-- Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -387,9 +387,12 @@ with st.spinner("AI Models Computing Consensus..."):
                 <div style="color: #A0AEC0; font-size: 14px; margin-bottom: 16px;">Top drivers this week</div>
                 {driver_html}
             </div>
-            """)
+            """
             
-            st.markdown(card_html, unsafe_allow_html=True)
+            # Force remove all leading whitespace to completely prevent markdown code block rendering
+            clean_html = "\n".join([line.lstrip() for line in card_html.split("\n")])
+            
+            st.markdown(clean_html, unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             
