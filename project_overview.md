@@ -25,11 +25,19 @@ Data collection → Feature engineering → Multiple models (trained in parallel
 
 ## Stage 3 — Multiple models, trained in parallel
 
-Three models are trained on the same feature table per commodity:
+Models are trained on the same feature table per commodity. The roster includes the current foundation models, alongside future expansions designed to test specific architectural advantages:
 
-1. **XGBoost** — tree-based, good at finding non-linear threshold rules across features, no scaling required
-2. **LightGBM** — tree-based, similar strengths to XGBoost, often faster on larger feature sets
-3. **LSTM** — sequence model, captures temporal patterns across time; requires scaled input and data reshaped into sequences (e.g. last 30 days → predict day 31), unlike the tree models
+### Tree-Based Models (No scaling required)
+1. **XGBoost** — Good at finding non-linear threshold rules across features. The primary baseline.
+2. **LightGBM** — Similar strengths to XGBoost, leaf-wise growth makes it faster on larger feature sets.
+3. **CatBoost (Future Addition)** — Handles noisy/smaller datasets well out of the box. Has built-in handling for categorical features (useful when we add things like "season" or "region" as macro features) and often needs less hyperparameter tuning than XGBoost.
+4. **Random Forest (Future Addition)** — Simpler and more robust to overfitting than boosted trees. A great sanity-check baseline against XGBoost/LightGBM since it is less prone to chasing noise.
+
+### Deep Learning Models (Requires scaled input & sequences)
+5. **LSTM** — Sequence model that captures temporal patterns across time (e.g. last 10 days → predict day 11).
+6. **GRU / Gated Recurrent Unit (Future Addition)** — Simpler cousin of LSTM with fewer parameters. Trains faster and sometimes performs comparably on smaller datasets like ours (~2,500 rows/commodity) — worth trying as a lighter alternative.
+7. **Temporal Fusion Transformer / TFT (Future Addition)** — Purpose-built for exactly this kind of problem: multi-horizon forecasting with mixed data types (price, macro, sentiment). Features built-in interpretability (attention weights double as feature importance). A perfect mid-project stretch goal once macro/sentiment data is in play.
+8. **N-BEATS (Future Addition)** — A newer, pure time-series deep learning architecture designed specifically for forecasting (not adapted from NLP like LSTM/Transformer). Known to perform well without heavy feature engineering — interesting to compare against our heavily engineered tree models.
 
 Each model is evaluated independently against a naive baseline (tomorrow's price = today's price) using MAE, RMSE, and directional accuracy. It's expected and normal for different models to win on different commodities — e.g. XGBoost may perform best for gold while LSTM performs best for natural gas.
 

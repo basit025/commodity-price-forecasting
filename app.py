@@ -1,277 +1,293 @@
 import streamlit as st
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from datetime import timedelta
+import os
 import yfinance as yf
-from inference import run_inference, fetch_live_data, COMMODITY_TICKERS
 
-st.set_page_config(page_title="FundForge AI", layout="wide", page_icon="⚡")
+# Import our backend ensemble engine
+from ensemble_inference import ensemble_predict
 
-# --- 1. Ticker Tape Data Fetching ---
-@st.cache_data(ttl=300)
-def get_market_summary():
-    tickers = list(COMMODITY_TICKERS.values())
-    try:
-        data = yf.download(tickers, period="5d", progress=False)
-        summary = []
-        for name, ticker in COMMODITY_TICKERS.items():
-            if ticker in data['Close']:
-                closes = data['Close'][ticker].dropna()
-                if len(closes) >= 2:
-                    current = closes.iloc[-1]
-                    prev = closes.iloc[-2]
-                    pct_change = ((current - prev) / prev) * 100
-                    summary.append({
-                        'name': name.replace('_', ' ').title(),
-                        'price': current,
-                        'change': pct_change
-                    })
-        return summary
-    except Exception as e:
-        return []
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="FundForge AI Terminal",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-market_summary = get_market_summary()
-
-# --- 2. Dynamic Theme Dictionary ---
-THEMES = {
-    'gold': {'grad': 'linear-gradient(45deg, #FFD700, #FFA500)', 'btn_grad': 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)', 'btn_hover': 'linear-gradient(90deg, #FFA500 0%, #FFD700 100%)', 'g1': 'rgba(255, 215, 0, 0.08)', 'g2': 'rgba(255, 165, 0, 0.08)', 'line': '#FFD700', 'fill': 'rgba(255, 215, 0, 0.1)', 'text': '#111'},
-    'silver': {'grad': 'linear-gradient(45deg, #E0E0E0, #9E9E9E)', 'btn_grad': 'linear-gradient(90deg, #E0E0E0 0%, #9E9E9E 100%)', 'btn_hover': 'linear-gradient(90deg, #9E9E9E 0%, #E0E0E0 100%)', 'g1': 'rgba(224, 224, 224, 0.08)', 'g2': 'rgba(158, 158, 158, 0.08)', 'line': '#E0E0E0', 'fill': 'rgba(224, 224, 224, 0.1)', 'text': '#111'},
-    'copper': {'grad': 'linear-gradient(45deg, #CD7F32, #8B4513)', 'btn_grad': 'linear-gradient(90deg, #CD7F32 0%, #8B4513 100%)', 'btn_hover': 'linear-gradient(90deg, #8B4513 0%, #CD7F32 100%)', 'g1': 'rgba(205, 127, 50, 0.08)', 'g2': 'rgba(139, 69, 19, 0.08)', 'line': '#CD7F32', 'fill': 'rgba(205, 127, 50, 0.1)', 'text': '#FFF'},
-    'natural_gas': {'grad': 'linear-gradient(45deg, #00C6FF, #0072FF)', 'btn_grad': 'linear-gradient(90deg, #00C6FF 0%, #0072FF 100%)', 'btn_hover': 'linear-gradient(90deg, #0072FF 0%, #00C6FF 100%)', 'g1': 'rgba(0, 198, 255, 0.08)', 'g2': 'rgba(0, 114, 255, 0.08)', 'line': '#0072FF', 'fill': 'rgba(0, 114, 255, 0.1)', 'text': '#FFF'},
-    'crude_oil': {'grad': 'linear-gradient(45deg, #8E2DE2, #4A00E0)', 'btn_grad': 'linear-gradient(90deg, #8E2DE2 0%, #4A00E0 100%)', 'btn_hover': 'linear-gradient(90deg, #4A00E0 0%, #8E2DE2 100%)', 'g1': 'rgba(142, 45, 226, 0.08)', 'g2': 'rgba(74, 0, 224, 0.08)', 'line': '#8E2DE2', 'fill': 'rgba(142, 45, 226, 0.1)', 'text': '#FFF'},
-    'wheat': {'grad': 'linear-gradient(45deg, #F6D365, #FDA085)', 'btn_grad': 'linear-gradient(90deg, #F6D365 0%, #FDA085 100%)', 'btn_hover': 'linear-gradient(90deg, #FDA085 0%, #F6D365 100%)', 'g1': 'rgba(246, 211, 101, 0.08)', 'g2': 'rgba(253, 160, 133, 0.08)', 'line': '#F6D365', 'fill': 'rgba(246, 211, 101, 0.1)', 'text': '#111'}
-}
-
-# Sidebar Controls for frictionless interaction
-with st.sidebar:
-    st.markdown("<h2 style='text-align: center; color: white;'>Platform Settings</h2>", unsafe_allow_html=True)
-    commodity = st.selectbox("🎯 Target Asset", list(COMMODITY_TICKERS.keys()), format_func=lambda x: x.replace('_', ' ').title())
-    model_type = st.selectbox("🧠 AI Engine", ["LSTM", "Transformer", "XGBoost", "LightGBM"], index=0)
-    chart_period = st.selectbox("📅 Chart History", ["3 Months", "6 Months", "1 Year", "2 Years", "5 Years"], index=1)
-    period_map = {"3 Months": 90, "6 Months": 180, "1 Year": 365, "2 Years": 730, "5 Years": 1825}
-    
-    st.markdown("<br><hr style='border: 1px solid #232833;'><p style='text-align: center; color: #8A9BB1; font-size: 0.9rem;'>Powered by FundForge AI</p>", unsafe_allow_html=True)
-
-t = THEMES[commodity]
-
-# --- 3. Dynamic CSS Injection ---
-st.markdown(f"""
+# --- CUSTOM CSS ---
+st.markdown("""
 <style>
-    .stApp {{
-        background-color: #0B0E14;
-        background-image: 
-            radial-gradient(circle at 15% 50%, {t['g1']}, transparent 25%),
-            radial-gradient(circle at 85% 30%, {t['g2']}, transparent 25%),
-            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-        background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-        font-family: 'Inter', sans-serif;
-    }}
-    .gradient-text {{
-        background: {t['grad']};
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 3rem !important;
-        font-weight: 900;
-        margin-bottom: 0rem;
-        letter-spacing: -1px;
-    }}
+    /* Premium Dark Theme Overrides */
+    .stApp {
+        background-color: #0E1117;
+        color: #FAFAFA;
+    }
+    
     /* Ticker Tape Animation */
-    .ticker-wrap {{
+    .ticker-wrap {
         width: 100%;
         overflow: hidden;
-        background-color: rgba(21, 25, 35, 0.9);
-        border-bottom: 1px solid #232833;
-        border-top: 1px solid #232833;
-        padding-left: 20px;
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        height: 50px;
+        background-color: #1A1C23;
+        padding-left: 100%;
+        box-sizing: content-box;
+        border-bottom: 1px solid #333;
+        margin-top: -2rem;
         margin-bottom: 2rem;
-        margin-top: -2rem; /* Pull up to offset default streamlit padding */
-    }}
-    .ticker-content {{
-        display: flex;
         white-space: nowrap;
-        animation: ticker 40s linear infinite;
-    }}
-    .ticker-content:hover {{
-        animation-play-state: paused;
-    }}
-    @keyframes ticker {{
-        0%   {{ transform: translateX(0); }}
-        100% {{ transform: translateX(-50%); }}
-    }}
-    .ticker-item {{
+    }
+    .ticker {
         display: inline-block;
-        padding: 0 40px;
-        font-size: 15px;
-        color: #8A9BB1;
-        font-weight: 600;
-    }}
-    .ticker-item span.up {{ color: #00FF00; font-weight: 800; }}
-    .ticker-item span.down {{ color: #FF0000; font-weight: 800; }}
-    
-    div[data-testid="metric-container"] {{
-        background-color: #151923;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-        border: 1px solid #232833;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }}
-    div[data-testid="metric-container"]:hover {{
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px {t['g1']};
-        border: 1px solid {t['line']};
-    }}
-    
-    .cta-btn {{
-        background: {t['btn_grad']};
-        color: {t['text']};
-        border: none;
-        padding: 18px 24px;
-        text-align: center;
-        text-decoration: none;
+        white-space: nowrap;
+        padding-right: 100%;
+        box-sizing: content-box;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        animation-name: ticker;
+        animation-duration: 30s;
+    }
+    @keyframes ticker {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-100%, 0, 0); }
+    }
+    .ticker-item {
         display: inline-block;
-        font-size: 16px;
-        font-weight: 900;
-        margin-top: 1rem;
-        border-radius: 8px;
-        transition: all 0.3s ease 0s;
-        box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
+        padding: 10px 2rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: #E2E8F0;
+    }
+    .pos { color: #00FF7F; font-weight: bold; }
+    .neg { color: #FF4136; font-weight: bold; }
+    
+    /* Mock CTA Button styling */
+    .stButton>button {
         width: 100%;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        cursor: pointer;
-    }}
-    .cta-btn:hover {{
-        background: {t['btn_hover']};
-        box-shadow: 0px 15px 20px {t['g2']};
-        transform: translateY(-2px);
-    }}
+        background-color: #2962FF !important;
+        color: white !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
+        padding: 1rem !important;
+        border-radius: 8px !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+    }
+    .stButton>button:hover {
+        background-color: #1E4BD8 !important;
+        box-shadow: 0px 4px 15px rgba(41, 98, 255, 0.4) !important;
+    }
+    
+    /* Metrics Box Styling */
+    .metric-container {
+        background-color: #1A1C23;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 1px solid #2D3748;
+    }
+    .metric-title {
+        font-size: 14px;
+        color: #A0AEC0;
+        margin-bottom: 5px;
+    }
+    .metric-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #FFFFFF;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. Render Ticker Tape ---
-if market_summary:
-    # We duplicate the items to make the seamless infinite scroll work properly
-    items_html = ""
-    for item in market_summary:
-        color_class = "up" if item['change'] >= 0 else "down"
-        arrow = "▲" if item['change'] >= 0 else "▼"
-        items_html += f"<div class='ticker-item'>{item['name']} <span style='color: white; margin-left: 5px;'>${item['price']:,.2f}</span> <span class='{color_class}' style='margin-left: 5px;'>{arrow} {abs(item['change']):.2f}%</span></div>"
+# --- CONFIG & STATE ---
+COMMODITIES = {
+    'Gold (GC=F)': 'gold',
+    'Silver (SI=F)': 'silver',
+    'Copper (HG=F)': 'copper',
+    'Crude Oil (CL=F)': 'crude_oil',
+    'Natural Gas (NG=F)': 'natural_gas',
+    'Wheat (ZW=F)': 'wheat'
+}
+
+HORIZONS = {
+    '1 Day (Tomorrow)': 1,
+    '7 Days (1 Week)': 7,
+    '14 Days (2 Weeks)': 14,
+    '28 Days (1 Month)': 28,
+    '42 Days (1.5 Months)': 42,
+    '60 Days (2 Months)': 60,
+    '90 Days (1 Quarter)': 90,
+    '120 Days (Half Year)': 120
+}
+
+# --- HELPER FUNCTIONS ---
+@st.cache_data(ttl=3600)
+def get_ticker_data():
+    """Fetches latest prices from local CSV files for the ticker tape."""
+    ticker_html = ""
+    for name, key in COMMODITIES.items():
+        file_path = os.path.join('./data', f'{key}.csv')
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+            last = df['Close'].iloc[-1]
+            prev = df['Close'].iloc[-2]
+            pct = ((last - prev) / prev) * 100
+            
+            color_class = 'pos' if pct >= 0 else 'neg'
+            arrow = '▲' if pct >= 0 else '▼'
+            sign = '+' if pct >= 0 else ''
+            
+            name_short = name.split(' ')[0]
+            ticker_html += f"<div class='ticker-item'>{name_short} ${last:.2f} <span class='{color_class}'>{arrow} {sign}{pct:.2f}%</span></div>"
+            
+    return f"""
+    <div class="ticker-wrap">
+        <div class="ticker">
+            {ticker_html}{ticker_html}{ticker_html}
+        </div>
+    </div>
+    """
+
+def get_chart_data(commodity_key):
+    """Loads the last 90 days of historical data for plotting."""
+    file_path = os.path.join('./data', f'{commodity_key}.csv')
+    df = pd.read_csv(file_path, parse_dates=['Date'])
+    df = df.sort_values('Date').tail(90)
+    return df
+
+# --- UI RENDERING ---
+
+# 1. Ticker Tape Header
+st.markdown(get_ticker_data(), unsafe_allow_html=True)
+st.title("⚡ FundForge AI Terminal")
+
+# 2. Sidebar Controls
+with st.sidebar:
+    st.header("Terminal Controls")
     
-    ticker_html = f"<div class='ticker-wrap'><div class='ticker-content'>{items_html}{items_html}</div></div>"
-    st.markdown(ticker_html, unsafe_allow_html=True)
+    selected_name = st.selectbox("Select Asset", list(COMMODITIES.keys()), index=0)
+    selected_key = COMMODITIES[selected_name]
+    
+    selected_horizon_name = st.selectbox("Select Investment Horizon", list(HORIZONS.keys()), index=5) # Default 60d
+    selected_horizon = HORIZONS[selected_horizon_name]
+    
+    st.markdown("---")
+    st.markdown("""
+    ### System Status
+    🟢 Deep Learning Backend: **Online**  
+    🟢 Machine Learning Backend: **Online**  
+    🟢 Ensemble Engine: **Active**
+    """)
+    st.caption("v2.1.0 Production")
 
-# --- 5. Main Dashboard Header ---
-st.markdown(f'<h1 class="gradient-text">FundForge AI : {commodity.replace("_", " ").title()}</h1>', unsafe_allow_html=True)
-st.markdown("<p style='color: #8A9BB1; font-size: 1.1rem; margin-bottom: 2rem; font-weight: 500;'>Institutional Trading Signals & Predictive Analytics</p>", unsafe_allow_html=True)
-
-# --- 6. Instant Execution Logic ---
-try:
-    with st.spinner(f"Aggregating {model_type} intelligence for {commodity.upper()}..."):
-        result = run_inference(commodity, model_type)
-        df = fetch_live_data(commodity, days=period_map[chart_period])
+# 3. Main Logic (Instant Execution)
+with st.spinner("AI Models Computing Consensus..."):
+    # Run backend ensemble inference
+    try:
+        # Collect multi-horizon path
+        all_horizons = [1, 7, 14, 28, 42, 60, 90, 120]
+        target_horizons = [h for h in all_horizons if h <= selected_horizon]
         
-        # --- 7. Side-by-Side Layout ---
-        col_chart, col_telemetry = st.columns([7, 3])
+        historical_df = get_chart_data(selected_key)
+        last_date = historical_df['Date'].iloc[-1]
+        hist_dates = historical_df['Date'].tolist()
+        hist_prices = historical_df['Close'].tolist()
         
-        with col_chart:
-            # Build Plotly Chart
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                                vertical_spacing=0.03, row_heights=[0.8, 0.2])
+        path_dates = [last_date]
+        path_prices = [hist_prices[-1]]
+        
+        final_result = None
+        # Run inference across the timeline to build the curve
+        for h in target_horizons:
+            res = ensemble_predict(selected_key, h, top_n=3)
+            f_date = last_date + timedelta(days=int(h * 1.4))
+            path_dates.append(f_date)
+            path_prices.append(res['predicted_price'])
+            if h == selected_horizon:
+                final_result = res
+                
+        result = final_result
+        
+        # Determine Signal Formatting
+        is_up = result['predicted_return'] > 0
+        signal_text = "🟢 STRONG BUY" if is_up else "🔴 STRONG SELL"
+        signal_color = "#00FF7F" if is_up else "#FF4136"
+        
+        # --- ASYMMETRICAL LAYOUT ---
+        col1, col2 = st.columns([7, 3])
+        
+        with col1:
+            st.subheader(f"{selected_name.split(' ')[0]} Trajectory Projection")
             
-            # Area Chart
+            # Interactive Plotly Chart
+            fig = go.Figure()
+            
+            # Historical Area
             fig.add_trace(go.Scatter(
-                x=df.index, y=df['Close'],
-                mode='lines',
-                line=dict(color=t['line'], width=2.5),
+                x=hist_dates, y=hist_prices,
                 fill='tozeroy',
-                fillcolor=t['fill'],
-                name='Price'
-            ), row=1, col=1)
+                mode='lines',
+                line=dict(color='#2962FF', width=2),
+                fillcolor='rgba(41, 98, 255, 0.1)',
+                name='Historical Price'
+            ))
             
-            # Volume Bars
-            colors = ['#00FF00' if df['Close'].iloc[i] > df['Open'].iloc[i] else '#FF0000' for i in range(len(df))]
-            fig.add_trace(go.Bar(
-                x=df.index, y=df['Volume'],
-                marker_color=colors,
-                opacity=0.6,
-                name='Volume'
-            ), row=2, col=1)
-            
-            # Projection
-            next_date = df.index[-1] + pd.Timedelta(days=1)
-            direction_color = "#00FF00" if result['Direction'] == "Up" else "#FF0000"
-            
+            # Multi-Horizon Projection Line (The Curve)
             fig.add_trace(go.Scatter(
-                x=[df.index[-1], next_date],
-                y=[df['Close'].iloc[-1], result['Predicted_Price']],
+                x=path_dates,
+                y=path_prices,
                 mode='lines+markers',
-                marker=dict(color=direction_color, size=14, symbol='circle', line=dict(color='white', width=2)),
-                line=dict(color=direction_color, width=3, dash='dash'),
-                name='AI Target'
-            ), row=1, col=1)
-            
-            # MAs
-            df['MA20'] = df['Close'].rolling(20).mean()
-            df['MA50'] = df['Close'].rolling(50).mean()
-            
-            fig.add_trace(go.Scatter(x=df.index, y=df['MA20'], line=dict(color='#FFFFFF', width=1.2, dash='dot'), name='20-Day MA'))
-            fig.add_trace(go.Scatter(x=df.index, y=df['MA50'], line=dict(color='#8A9BB1', width=1.2, dash='dash'), name='50-Day MA'))
+                line=dict(color=signal_color, width=3, dash='dash', shape='spline'), # Spline for smooth curve
+                marker=dict(size=8, color=signal_color),
+                name='AI Multi-Horizon Path'
+            ))
             
             fig.update_layout(
-                template="plotly_dark",
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                xaxis_rangeslider_visible=False,
-                height=600,
-                margin=dict(l=0, r=0, t=10, b=0),
-                legend=dict(
-                    orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0.01,
-                    bgcolor='rgba(21, 25, 35, 0.8)', bordercolor='#232833', borderwidth=1
-                ),
-                xaxis=dict(gridcolor='#232833', showline=True, linewidth=1, linecolor='#232833'),
-                yaxis=dict(gridcolor='#232833', showline=True, linewidth=1, linecolor='#232833'),
-                xaxis2=dict(gridcolor='#232833', showline=True, linewidth=1, linecolor='#232833'),
-                yaxis2=dict(showgrid=False, showticklabels=False)
+                plot_bgcolor='#0E1117',
+                paper_bgcolor='#0E1117',
+                font=dict(color='#A0AEC0'),
+                xaxis=dict(showgrid=False, title=''),
+                yaxis=dict(showgrid=True, gridcolor='#2D3748', title='Price (USD)'),
+                margin=dict(l=0, r=0, t=20, b=0),
+                height=500,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
             
             st.plotly_chart(fig, use_container_width=True)
             
-        with col_telemetry:
-            # Telemetry Metrics Stacked Vertically on the right
-            st.markdown("<h3 style='color: white; margin-top: 0;'>Market Telemetry</h3>", unsafe_allow_html=True)
+            st.caption(f"**Models inside current ensemble:** {', '.join(result['models_used'])}")
             
-            c1, c2 = st.columns(2)
-            c1.metric("Date", result['Last_Date'])
-            c2.metric("Engine", model_type)
+        with col2:
+            st.subheader("Actionable Telemetry")
             
-            st.metric("Current Market Price", f"${result['Last_Close']:,.2f}")
-            
-            delta_val = f"{result['Predicted_Return_Pct']}% Expected Move"
-            st.metric("AI Price Target (1D)", f"${result['Predicted_Price']:,.2f}", delta_val)
-            
-            # CTA Signal Box
-            signal_text = "STRONG BUY" if result['Direction'] == "Up" else "STRONG SELL"
-            arrow = "⇡" if result['Direction'] == "Up" else "⇣"
-            
+            # Custom Metric Cards
             st.markdown(f"""
-                <div style='background-color: #151923; border-radius: 12px; padding: 24px; border: 1px solid #232833; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.4); margin-top: 1.5rem;'>
-                    <p style='color: #8A9BB1; font-size: 14px; margin: 0; font-weight: bold; text-transform: uppercase;'>Algorithmic Signal</p>
-                    <p style='color: {direction_color}; font-size: 36px; font-weight: 900; margin: 0; text-shadow: 0 0 15px {direction_color}60;'>{arrow} {signal_text}</p>
-                </div>
+            <div class="metric-container">
+                <div class="metric-title">Current Price</div>
+                <div class="metric-value">${result['current_price']:.2f}</div>
+            </div>
+            
+            <div class="metric-container">
+                <div class="metric-title">AI Projected Price ({selected_horizon} Trading Days)</div>
+                <div class="metric-value">${result['predicted_price']:.2f}</div>
+            </div>
+            
+            <div class="metric-container" style="border-left: 4px solid {signal_color};">
+                <div class="metric-title">Algorithmic Signal</div>
+                <div class="metric-value" style="color: {signal_color};">{signal_text}</div>
+                <div class="metric-title" style="margin-top: 5px;">Projected Move: {result['predicted_return']*100:+.2f}%</div>
+            </div>
             """, unsafe_allow_html=True)
             
-            # Interactive CTA Button
-            st.markdown(f"""
-                <a href="#" style="text-decoration: none;">
-                    <button class="cta-btn">Execute Trade At Market</button>
-                </a>
-            """, unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
             
-except Exception as e:
-    st.error(f"System Error: {str(e)}")
+            # Mock CTA Button
+            button_label = f"EXECUTE {selected_name.split(' ')[0]} TRADE"
+            st.button(button_label, use_container_width=True)
+            st.caption("Note: This is a simulation environment. No real capital will be allocated.")
+
+    except Exception as e:
+        st.error(f"Backend Engine Error: {str(e)}")
+        st.info("Check if models for this specific horizon and commodity exist in the /models directory.")

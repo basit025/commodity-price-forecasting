@@ -1,10 +1,10 @@
 # Multi-Horizon Forecasting Plan
 
-This document covers how the system predicts multiple time horizons (1, 7, 14, 28, 42, 60 days), the full implementation plan for this using the chosen approach, and how news/sentiment data will later be integrated into the same structure. Use this alongside the earlier project brief and system explanation files as AI coding context.
+This document covers how the system predicts multiple time horizons (1, 7, 14, 28, 42, 60, 90, 120 days), the full implementation plan for this using the chosen approach, and how news/sentiment data will later be integrated into the same structure. Use this alongside the earlier project brief and system explanation files as AI coding context.
 
 ## Horizons in scope
 
-The system forecasts six horizons per commodity: **1-day, 7-day, 14-day, 28-day, 42-day, 60-day.**
+The system forecasts eight horizons per commodity: **1-day, 7-day, 14-day, 28-day, 42-day, 60-day, 90-day, 120-day.**
 
 ## Chosen approach: Direct multi-horizon forecasting (Approach 1)
 
@@ -18,8 +18,8 @@ A separate model is trained per horizon, per model type, per commodity. The targ
 
 ### Scale of this approach
 
-Per commodity: 6 horizons × 3 model types (XGBoost, LightGBM, LSTM) = 18 models.
-Across all 6 commodities: 18 × 6 = 108 models total.
+Per commodity: 8 horizons × 3 model types (XGBoost, LightGBM, LSTM) = 24 models.
+Across all 6 commodities: 24 × 6 = 144 models total.
 
 This is mechanically simple even though the count is large — every model uses the identical feature table for that commodity, just a different target column and a separate training run.
 
@@ -36,6 +36,8 @@ Target_14d = Close price 14 trading days ahead
 Target_28d = Close price 28 trading days ahead
 Target_42d = Close price 42 trading days ahead
 Target_60d = Close price 60 trading days ahead
+Target_90d = Close price 90 trading days ahead
+Target_120d = Close price 120 trading days ahead
 ```
 
 Note: use trading days, not calendar days, since your data only has rows for trading days. Also consider adding `Target_Return_Nd` (percentage return instead of raw price) alongside each — return targets are often more stationary and easier for models to learn, especially at longer horizons.
@@ -56,6 +58,8 @@ For each commodity, train:
 | 28-day | Model_XGB_28d | Model_LGB_28d | Model_LSTM_28d |
 | 42-day | Model_XGB_42d | Model_LGB_42d | Model_LSTM_42d |
 | 60-day | Model_XGB_60d | Model_LGB_60d | Model_LSTM_60d |
+| 90-day | Model_XGB_90d | Model_LGB_90d | Model_LSTM_90d |
+| 120-day | Model_XGB_120d | Model_LGB_120d | Model_LSTM_120d |
 
 Build order: get the 1-day horizon fully working end-to-end first (data → features → 3 models → ensemble → output). Once that's validated, replicate the exact same process for 7-day by swapping only the target column. Repeat for the remaining horizons — by this point it is largely copy-paste with a changed target, not new design work.
 
@@ -85,6 +89,8 @@ Gold:
   28d: range [$2,340–$2,520], confidence 49%
   42d: range [$2,310–$2,550], confidence 46%
   60d: range [$2,300–$2,580], confidence 44%
+  90d: range [$2,280–$2,600], confidence 41%
+  120d: range [$2,250–$2,630], confidence 38%
 ```
 
 Range width and confidence should visibly widen/decrease as horizon increases. This feeds the dashboard's per-commodity card as a horizon selector or a stacked horizon list, not a redesign of the card itself.
