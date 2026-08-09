@@ -110,7 +110,7 @@ st.markdown("""
         justify-content: center !important;
         text-align: center !important;
         width: 100% !important;
-        margin-bottom: 12px;
+        margin-bottom: 16px !important;
     }
     div[data-testid="stPills"] [data-testid="stWidgetLabel"] p {
         color: #9FB4C8 !important;
@@ -121,43 +121,70 @@ st.markdown("""
         text-align: center !important;
         margin: 0 auto !important;
     }
-    div[data-testid="stPills"] div[role="radiogroup"] {
+    /* PILL / SEGMENTED CONTROL SIZING AND THEME (GENERIC ARIA ROLE TARGETING) */
+    [role="radiogroup"] {
         justify-content: center !important;
-        gap: 12px;
-        flex-wrap: wrap;
-        width: 100%;
+        gap: 16px !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
     }
-    div[data-testid="stPills"] button {
-        padding: 16px 36px !important; 
-        border-radius: 35px !important;
+    
+    [role="radiogroup"] button, 
+    [role="radiogroup"] label, 
+    [role="radiogroup"] [role="radio"] {
+        border-radius: 40px !important;
         background: #111C2E !important;
-        border: 1px solid #29425F !important;
+        border: 2px solid #29425F !important;
         transition: all 0.3s ease !important;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+        padding: 0 !important;
+        min-height: 60px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 4px !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.025) !important;
     }
-    div[data-testid="stPills"] button p {
-        font-size: 18px !important;    
-        font-weight: 700 !important;
+    
+    [role="radiogroup"] button *, 
+    [role="radiogroup"] label *, 
+    [role="radiogroup"] [role="radio"] * {
+        font-size: 24px !important;
+        font-weight: 800 !important;
         color: #D9E8F7 !important;
-        letter-spacing: 0.5px !important;
+        padding: 12px 30px !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
     }
-    div[data-testid="stPills"] button:hover {
+    
+    [role="radiogroup"] button:hover, 
+    [role="radiogroup"] label:hover, 
+    [role="radiogroup"] [role="radio"]:hover {
         border-color: #4DE6FF !important;
         background: #14243A !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
     }
-    div[data-testid="stPills"] button:hover p {
+    
+    [role="radiogroup"] button:hover *, 
+    [role="radiogroup"] label:hover *, 
+    [role="radiogroup"] [role="radio"]:hover * {
         color: #4DE6FF !important;
     }
-    div[data-testid="stPills"] button[aria-checked="true"], 
-    div[data-testid="stPills"] button[data-selected="true"] {
+    
+    [role="radiogroup"] [aria-checked="true"], 
+    [role="radiogroup"] [data-selected="true"], 
+    [role="radiogroup"] [aria-pressed="true"],
+    [role="radiogroup"] input:checked + div {
         background: linear-gradient(135deg, #435CFF 0%, #20C7E8 100%) !important;
-        box-shadow: 0 8px 24px rgba(49,127,255,.25) !important;
-        border: none !important;
+        box-shadow: 0 8px 24px rgba(49,127,255,.35) !important;
+        border-color: transparent !important;
     }
-    div[data-testid="stPills"] button[aria-checked="true"] p, 
-    div[data-testid="stPills"] button[data-selected="true"] p {
+    
+    [role="radiogroup"] [aria-checked="true"] *, 
+    [role="radiogroup"] [data-selected="true"] *, 
+    [role="radiogroup"] [aria-pressed="true"] *,
+    [role="radiogroup"] input:checked + div * {
         color: #F8FDFF !important;
+        font-weight: 800 !important;
     }
 
     /* Inputs & Metrics */
