@@ -77,8 +77,8 @@ st.markdown("""
         color: #DCEBFA !important;
     }
 
-    .pos { color: #59D8FF; font-weight: 700; }
-    .neg { color: #7C5CFF; font-weight: 700; }
+    .pos { color: #00C853; font-weight: 700; }
+    .neg { color: #FF5252; font-weight: 700; }
     
     .app-title {
         margin: 0 0 0.4rem 0;
@@ -618,8 +618,16 @@ with st.spinner("AI Models Computing Consensus..."):
         final_result = trajectory_results[selected_horizon]
         
         # Signal Formatting
-        is_up = final_result['predicted_return'] > 0
-        signal_color = "#4DE6FF" if is_up else "#7C5CFF"
+        pred_return = final_result['predicted_return']
+        if pred_return > 0.005:
+            signal_color = "#00C853"  # Green - bullish
+            is_up = True
+        elif pred_return < -0.005:
+            signal_color = "#FF5252"  # Red - bearish
+            is_up = False
+        else:
+            signal_color = "#FFB74D"  # Orange - sideways
+            is_up = None
         
         col1, col2 = st.columns([7, 3], gap="large")
         
@@ -666,7 +674,7 @@ with st.spinner("AI Models Computing Consensus..."):
             drivers = generate_market_drivers(df_live_seq)
             driver_html = ""
             for driver_text, sentiment in drivers:
-                color = "#4DE6FF" if sentiment == "+" else "#7C5CFF"
+                color = "#00C853" if sentiment == "+" else "#FF5252"
                 driver_html += f'''
                 <div class="driver-item">
                     <span style="color: #E2E8F0; font-weight: 500;">{driver_text}</span>
@@ -674,9 +682,18 @@ with st.spinner("AI Models Computing Consensus..."):
                 </div>
                 '''
                 
-            badge_bg = "rgba(77, 230, 255, 0.10)" if is_up else "rgba(124, 92, 255, 0.12)"
-            badge_color = "#4DE6FF" if is_up else "#7C5CFF"
-            badge_icon = "↗ Bullish" if is_up else "↘ Bearish"
+            if is_up is True:
+                badge_bg = "rgba(0, 200, 83, 0.12)"
+                badge_color = "#00C853"
+                badge_icon = "↗ Bullish"
+            elif is_up is False:
+                badge_bg = "rgba(255, 82, 82, 0.12)"
+                badge_color = "#FF5252"
+                badge_icon = "↘ Bearish"
+            else:
+                badge_bg = "rgba(255, 183, 77, 0.12)"
+                badge_color = "#FFB74D"
+                badge_icon = "→ Neutral"
             
             p_min = final_result.get('predicted_min', final_result['predicted_price'] * 0.98)
             p_max = final_result.get('predicted_max', final_result['predicted_price'] * 1.02)
@@ -712,25 +729,25 @@ with st.spinner("AI Models Computing Consensus..."):
             risk_score = min(100, vol_pts + dd_pts + conf_pts + f_pts + ds_pts)
             if risk_score < 30:
                 risk_level = "LOW"
-                risk_color ="#4DE6FF"
+                risk_color = "#00C853"  # Green
             elif risk_score < 60:
                 risk_level = "MEDIUM"
-                risk_color = "#4F6BFF"
+                risk_color = "#FFB74D"  # Orange
             else:
                 risk_level = "HIGH"
-                risk_color = "#7C5CFF"
+                risk_color = "#FF5252"  # Red
 
             if pred_move_pct >= 1.0 and confidence >= 60:
                 recommendation = "BUY"
-                rec_color = "#4DE6FF"
+                rec_color = "#00C853"  # Green
                 rec_icon = "↗"
             elif pred_move_pct <= -1.0 and confidence >= 60:
-                recommendation = "AVOID"
-                rec_color = "#7C5CFF"
+                recommendation = "SELL"
+                rec_color = "#FF5252"  # Red
                 rec_icon = "↘"
             else:
                 recommendation = "HOLD"
-                rec_color = "#4F6BFF"
+                rec_color = "#FFB74D"  # Orange
                 rec_icon = "•"
             
             card_html = f"""
