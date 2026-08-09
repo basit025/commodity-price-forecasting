@@ -677,8 +677,8 @@ with st.spinner("AI Models Computing Consensus..."):
                 color = "#00C853" if sentiment == "+" else "#FF5252"
                 driver_html += f'''
                 <div class="driver-item">
-                    <span style="color: #E2E8F0; font-weight: 500;">{driver_text}</span>
-                    <span style="color: {color}; font-weight: 900; font-size: 18px; line-height: 1;">{sentiment}</span>
+                    <span style="color: #E2E8F0; font-weight: 500; font-size: 16px;">{driver_text}</span>
+                    <span style="color: {color}; font-weight: 900; font-size: 22px; line-height: 1;">{sentiment}</span>
                 </div>
                 '''
                 
@@ -792,21 +792,21 @@ with st.spinner("AI Models Computing Consensus..."):
             
             <div class="premium-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <h2 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">{selected_name}</h2>
-                    <div style="background-color: {badge_bg}; color: {badge_color}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; box-shadow: 0 0 10px {badge_bg};">
+                    <h2 style="margin: 0; color: white; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">{selected_name}</h2>
+                    <div style="background-color: {badge_bg}; color: {badge_color}; padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; box-shadow: 0 0 10px {badge_bg};">
                         {badge_icon}
                     </div>
                 </div>
-                <div style="color: #9FB4C8; font-size: 14px; margin-bottom: 24px; font-weight: 500;">{selected_horizon}-Day AI Forecast</div>
+                <div style="color: #9FB4C8; font-size: 17px; margin-bottom: 24px; font-weight: 500;">{selected_horizon}-Day AI Forecast</div>
                 
                 <div style="display: flex; align-items: baseline; margin-bottom: 30px;">
-                    <span style="font-size: 42px; font-weight: 800; color: white; letter-spacing: -1px;">${final_result['current_price']:,.2f}</span>
-                    <span style="color: #9FB4C8; font-size: 15px; margin-left: 10px; font-weight: 500;">current close</span>
+                    <span style="font-size: 44px; font-weight: 800; color: white; letter-spacing: -1px;">${final_result['current_price']:,.2f}</span>
+                    <span style="color: #9FB4C8; font-size: 17px; margin-left: 10px; font-weight: 500;">current close</span>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; color: #9FB4C8; font-size: 13px; margin-bottom: 10px; font-weight: 600;">
+                <div style="display: flex; justify-content: space-between; color: #9FB4C8; font-size: 16px; margin-bottom: 10px; font-weight: 600;">
                     <span>${visual_min:,.2f}</span>
-                    <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 11px;">Predicted Range</span>
+                    <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Predicted Range</span>
                     <span>${visual_max:,.2f}</span>
                 </div>
                 
@@ -817,28 +817,28 @@ with st.spinner("AI Models Computing Consensus..."):
                 
                 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px;">
                     <div class="sub-card">
-                        <div style="color: #9FB4C8; font-size: 12px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Confidence</div>
-                        <div style="color: white; font-size: 22px; font-weight: 800;">{confidence:.1f}%</div>
+                        <div style="color: #9FB4C8; font-size: 15px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Confidence</div>
+                        <div style="color: white; font-size: 26px; font-weight: 800;">{confidence:.1f}%</div>
                     </div>
                     <div class="sub-card">
-                        <div style="color: #9FB4C8; font-size: 12px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Proj. Move</div>
-                        <div style="color: {signal_color}; font-size: 22px; font-weight: 800;">{pred_move_sign}{pred_move_pct:.2f}%</div>
+                        <div style="color: #9FB4C8; font-size: 15px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Proj. Move</div>
+                        <div style="color: {signal_color}; font-size: 26px; font-weight: 800;">{pred_move_sign}{pred_move_pct:.2f}%</div>
                     </div>
                     <div class="sub-card">
-                        <div style="color: #9FB4C8; font-size: 12px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Risk</div>
-                        <div style="color: {risk_color}; font-size: 16px; font-weight: 800;">{risk_level}</div>
+                        <div style="color: #9FB4C8; font-size: 15px; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Risk</div>
+                        <div style="color: {risk_color}; font-size: 22px; font-weight: 800;">{risk_level}</div>
                     </div>
                 </div>
 
                 <div style="background:#162338; padding:18px; border-radius:14px; margin-bottom:20px; border:1px solid #29425F;">
-                    <div style="color:#9FB4C8; font-size:12px; text-transform:uppercase; font-weight:700; letter-spacing:0.7px;">Recommendation</div>
-                    <div style="font-size:30px; font-weight:900; color:{rec_color}; margin-top:6px;">{rec_icon} {recommendation}</div>
+                    <div style="color:#9FB4C8; font-size:15px; text-transform:uppercase; font-weight:700; letter-spacing:0.7px;">Recommendation</div>
+                    <div style="font-size:34px; font-weight:900; color:{rec_color}; margin-top:6px;">{rec_icon} {recommendation}</div>
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
                 
                 {f'''<!-- Top Drivers -->
-                <div style="color: #9FB4C8; font-size: 13px; margin-bottom: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Primary Market Drivers</div>
+                <div style="color: #9FB4C8; font-size: 16px; margin-bottom: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Primary Market Drivers</div>
                 {driver_html}''' if driver_html else ""}
             </div>
             """
