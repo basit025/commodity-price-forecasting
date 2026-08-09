@@ -650,7 +650,7 @@ with st.spinner("AI Models Computing Consensus..."):
                 y=path_prices,
                 mode='lines+markers',
                 line=dict(color=signal_color, width=3, dash='dash', shape='spline'), 
-                marker=dict(size=8, color=signal_color),
+                marker=dict(size=14, color=signal_color, line=dict(width=2, color='white'), symbol='circle'),
                 name='AI Multi-Horizon Path'
             ))
             
