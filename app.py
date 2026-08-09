@@ -797,9 +797,6 @@ with st.spinner("AI Models Computing Consensus..."):
                 st.metric("Est. Future Value", f"${future_value:,.2f}")
                 
             st.markdown("<br><br>", unsafe_allow_html=True)
-            
-            if st.button(f"VIEW {selected_name.upper()} INVESTMENT PLAN", use_container_width=True):
-                show_investment_plan()
 
             plan_data = {
                 "selected_name": selected_name,
