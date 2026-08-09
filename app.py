@@ -589,39 +589,39 @@ with st.spinner("AI Models Computing Consensus..."):
         
         with col1:
             st.subheader(f"{selected_name} Trajectory Projection")
-        
-        fig = go.Figure()
-        # Historical Area
-        fig.add_trace(go.Scatter(
-            x=hist_dates, y=hist_prices,
-            fill='tozeroy',
-            mode='lines',
-            line=dict(color='#4F6BFF', width=2),
-            fillcolor='rgba(79, 107, 255, 0.10)',
-            name='Historical Price'
-        ))
-        # Multi-Horizon Projection Line
-        fig.add_trace(go.Scatter(
-            x=path_dates,
-            y=path_prices,
-            mode='lines+markers',
-            line=dict(color=signal_color, width=3, dash='dash', shape='spline'), 
-            marker=dict(size=8, color=signal_color),
-            name='AI Multi-Horizon Path'
-        ))
-        
-        fig.update_layout(
-            plot_bgcolor='#07101E',
-            paper_bgcolor='#07101E',
-            font=dict(color='#9FB4C8'),
-            xaxis=dict(showgrid=False, title=''),
-            yaxis=dict(showgrid=True, gridcolor='#243954', title='Price (USD)'),
-            margin=dict(l=0, r=0, t=20, b=0),
-            height=500,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        st.plotly_chart(fig, use_container_width=True)
-        st.caption(f"**Models inside current ensemble:** {', '.join(final_result['models_used'])}")
+            
+            fig = go.Figure()
+            # Historical Area
+            fig.add_trace(go.Scatter(
+                x=hist_dates, y=hist_prices,
+                fill='tozeroy',
+                mode='lines',
+                line=dict(color='#4F6BFF', width=2),
+                fillcolor='rgba(79, 107, 255, 0.10)',
+                name='Historical Price'
+            ))
+            # Multi-Horizon Projection Line
+            fig.add_trace(go.Scatter(
+                x=path_dates,
+                y=path_prices,
+                mode='lines+markers',
+                line=dict(color=signal_color, width=3, dash='dash', shape='spline'), 
+                marker=dict(size=8, color=signal_color),
+                name='AI Multi-Horizon Path'
+            ))
+            
+            fig.update_layout(
+                plot_bgcolor='#07101E',
+                paper_bgcolor='#07101E',
+                font=dict(color='#9FB4C8'),
+                xaxis=dict(showgrid=False, title=''),
+                yaxis=dict(showgrid=True, gridcolor='#243954', title='Price (USD)'),
+                margin=dict(l=0, r=0, t=20, b=0),
+                height=500,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption(f"**Models inside current ensemble:** {', '.join(final_result['models_used'])}")
         
         with col2:
             st.subheader("Actionable Telemetry")
