@@ -124,3 +124,67 @@ By separating these, the AI can learn that a supply shock overrides macro weakne
 *   Tier 2 (CNBC, Yahoo Finance, generic news) = `1.0x` weight.
 *   Tier 3 (Unknown/Blogs) = `0.5x` weight.
 This ensures the model pays maximum attention to market-moving sources and ignores clickbait.
+
+---
+
+## Part 4: Visual Data Alignment Guide (Translating News to Math)
+
+Combining synchronous data (OHLCV) with asynchronous data (News) is one of the hardest parts of this pipeline. OHLCV data is perfectly neat—one row per trading day. News data is chaotic—you might have 5 articles on Monday, 0 on Tuesday, and 12 on Sunday when the markets are closed.
+
+Machine learning models require a strict, flat table: 1 row = 1 day. Here is exactly how we convert the chaos of news into perfectly aligned columns.
+
+### Step 1: What We Start With
+Imagine we are looking at Crude Oil. We have two completely separate datasets.
+
+**Dataset 1: Existing `crude_oil.csv` (Perfectly structured)**
+| Date | Close | RSI_14 | USD_Index | EIA_Inventory |
+| :--- | :--- | :--- | :--- | :--- |
+| **Friday (Oct 6)** | $82.50 | 45.2 | 106.1 | 421M |
+| **Monday (Oct 9)** | $86.00 | 52.1 | 106.4 | 421M |
+*(Notice there is no Saturday or Sunday because markets are closed).*
+
+**Dataset 2: Raw News Data (Chaotic and messy)**
+| Date | Time | Headline |
+| :--- | :--- | :--- |
+| Friday | 10:00 AM | *"US rig counts fall slightly"* |
+| Saturday | 2:00 PM | *"Hamas attacks Israel"* |
+| Saturday | 6:00 PM | *"Middle East tensions rise"* |
+| Sunday | 9:00 AM | *"OPEC calls emergency meeting"* |
+| Monday | 08:00 AM | *"Oil prices expected to surge"* |
+
+### Step 2: Scoring & Aggregating the News
+We cannot join the raw text to the prices. First, FinBERT scores every headline from -1.0 (Bearish) to +1.0 (Bullish). Then, we group all the articles by **Calendar Day** and take the average score:
+
+| Calendar Date | Article Count | Average Sentiment Score |
+| :--- | :--- | :--- |
+| Friday | 1 article | `-0.2` (Slightly Bearish) |
+| Saturday | 2 articles | `+0.8` (Highly Bullish for Oil) |
+| Sunday | 1 article | `+0.9` (Highly Bullish for Oil) |
+| Monday | 1 article | `+0.6` (Bullish for Oil) |
+
+### Step 3: Handling Weekends & Cutoffs (The Crucial Fix)
+If we join this directly to the OHLCV data, Saturday and Sunday will disappear because they aren't trading days. To fix this, we apply the **"Next Available Trading Day"** rule.
+*   Friday's news happened during Friday's trading session ➔ Belongs to Friday.
+*   Saturday's news happened when markets were closed ➔ Pushed to Monday.
+*   Sunday's news happened when markets were closed ➔ Pushed to Monday.
+*   Monday's news (pre-market) ➔ Belongs to Monday.
+
+We combine all the news for Saturday, Sunday, and Monday morning into a single **Monday Score**.
+
+**Final Cleaned News Table:**
+| Trading Date | News_Volume | Sentiment_Score |
+| :--- | :--- | :--- |
+| **Friday (Oct 6)** | 1 | `-0.20` |
+| **Monday (Oct 9)** | 4 | `+0.77` *(Avg of Sat+Sun+Mon)* |
+
+### Step 4: The Final Merge
+Now, both datasets speak the exact same language: **One row per Trading Day**.
+We perform a simple Python pandas `merge(on='Date')`. The new sentiment numbers become extra columns at the end of the existing dataset!
+
+**The Final Training Dataset:**
+| Date | Close | RSI_14 | USD_Index | **News_Volume** | **Sentiment_Score** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Friday | $82.50 | 45.2 | 106.1 | **1** | **-0.20** |
+| Monday | $86.00 | 52.1 | 106.4 | **4** | **+0.77** |
+
+When you feed this final row into XGBoost or LSTM, the model doesn't know what "News" is. It just sees that on Monday, the `News_Volume` spiked to 4, and the `Sentiment_Score` spiked to +0.77, and it will mathematically correlate those two numbers to the price jumping to $86.00.
