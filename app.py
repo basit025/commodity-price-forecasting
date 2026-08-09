@@ -530,7 +530,9 @@ st.markdown(f'''
 st.markdown(get_ticker_data(), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-simulator_btn_placeholder = st.empty()
+col_spacer, col_btn = st.columns([7, 3])
+with col_btn:
+    simulator_btn_placeholder = st.empty()
 st.markdown("<br>", unsafe_allow_html=True)
 
 selected_name = st.pills(
