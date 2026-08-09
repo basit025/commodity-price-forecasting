@@ -105,16 +105,17 @@ st.markdown("""
         margin-bottom: 20px;
         width: 100%;
     }
-    div[data-testid="stPills"] [data-testid="stWidgetLabel"] {
+    /* Generic Widget Labels */
+    [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
         text-align: center !important;
         width: 100% !important;
-        margin-bottom: 16px !important;
+        margin-bottom: 12px !important;
     }
-    div[data-testid="stPills"] [data-testid="stWidgetLabel"] p {
+    [data-testid="stWidgetLabel"] p {
         color: #9FB4C8 !important;
-        font-size: 16px !important;
+        font-size: 20px !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
         letter-spacing: 1.5px !important;
@@ -124,9 +125,10 @@ st.markdown("""
     /* PILL / SEGMENTED CONTROL SIZING AND THEME (GENERIC ARIA ROLE TARGETING) */
     [role="radiogroup"] {
         justify-content: center !important;
-        gap: 16px !important;
+        gap: 12px !important;
         flex-wrap: wrap !important;
         width: 100% !important;
+        margin-bottom: 24px !important;
     }
     
     [role="radiogroup"] button, 
@@ -137,7 +139,7 @@ st.markdown("""
         border: 2px solid #29425F !important;
         transition: all 0.3s ease !important;
         padding: 0 !important;
-        min-height: 60px !important;
+        min-height: 48px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -148,10 +150,10 @@ st.markdown("""
     [role="radiogroup"] button *, 
     [role="radiogroup"] label *, 
     [role="radiogroup"] [role="radio"] * {
-        font-size: 24px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
         color: #D9E8F7 !important;
-        padding: 12px 30px !important;
+        padding: 8px 24px !important;
         margin: 0 !important;
         line-height: 1.2 !important;
     }
