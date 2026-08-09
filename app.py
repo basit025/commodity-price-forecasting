@@ -9,6 +9,12 @@ import yfinance as yf
 # Import our backend ensemble engine
 from ensemble_inference import ensemble_predict
 from live_data_pipeline import ASSET_TICKERS, get_live_features
+import base64
+
+@st.cache_data
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -432,9 +438,18 @@ def generate_market_drivers(historical_features_df):
 # --- MODALS ---
 @st.dialog("AI Investment Plan", width="large")
 def show_investment_plan(data: dict):
+    # Dynamic calculation inside modal
+    investment = st.number_input(
+        "Investment Amount ($)",
+        min_value=100.0, value=1000.0, step=100.0,
+        key=f"investment_modal_{data['selected_name']}_{data['selected_horizon']}"
+    )
+    expected_profit = investment * (data['pred_move_pct'] / 100)
+    future_value = investment + expected_profit
+    
     direction_word = "rise" if data['pred_move_pct'] > 0 else "fall" if data['pred_move_pct'] < 0 else "stay stable"
     confidence_label = "High" if data['confidence'] >= 75 else "Moderate" if data['confidence'] >= 55 else "Low"
-    gain_color = "#59D8FF" if data['expected_profit'] >= 0 else "#8A6CFF"
+    gain_color = "#59D8FF" if expected_profit >= 0 else "#8A6CFF"
     
     st.markdown(
         f"""
@@ -474,15 +489,15 @@ def show_investment_plan(data: dict):
     st.markdown('<div class="section-heading">Investment Simulation</div>', unsafe_allow_html=True)
 
     s1, s2, s3 = st.columns(3)
-    with s1: st.metric("Investment Amount", f"${data['investment']:,.2f}")
-    with s2: st.metric("Estimated Gain / Loss", f"${data['expected_profit']:,.2f}", delta=f"{data['pred_move_sign']}{data['pred_move_pct']:.2f}%")
-    with s3: st.metric("Estimated Future Value", f"${data['future_value']:,.2f}")
+    with s1: st.metric("Investment Amount", f"${investment:,.2f}")
+    with s2: st.metric("Estimated Gain / Loss", f"${expected_profit:,.2f}", delta=f"{data['pred_move_sign']}{data['pred_move_pct']:.2f}%")
+    with s3: st.metric("Estimated Future Value", f"${future_value:,.2f}")
 
     st.markdown(
         f"""
         <div class="gain-banner">
-            <div class="label">Estimated {"Gain" if data['expected_profit'] >= 0 else "Loss"}</div>
-            <div class="value" style="color:{gain_color};">${data['expected_profit']:,.2f}</div>
+            <div class="label">Estimated {"Gain" if expected_profit >= 0 else "Loss"}</div>
+            <div class="value" style="color:{gain_color};">${expected_profit:,.2f}</div>
         </div>
         """, unsafe_allow_html=True
     )
@@ -505,7 +520,13 @@ def show_investment_plan(data: dict):
 
 # --- UI RENDERING ---
 
-st.markdown("<h1 class=\"app-title\">FundForge <span>AI Terminal</span></h1>", unsafe_allow_html=True)
+logo_b64 = get_base64_image("logo-small.png")
+st.markdown(f'''
+<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 0.4rem;">
+    <img src="data:image/png;base64,{logo_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #59D8FF; box-shadow: 0 0 15px rgba(89,216,255,0.4);">
+    <h1 class="app-title" style="margin: 0;">FundForge <span>AI Terminal</span></h1>
+</div>
+''', unsafe_allow_html=True)
 st.markdown(get_ticker_data(), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -564,8 +585,10 @@ with st.spinner("AI Models Computing Consensus..."):
         is_up = final_result['predicted_return'] > 0
         signal_color = "#4DE6FF" if is_up else "#7C5CFF"
         
-        # --- FULL WIDTH LAYOUT ROW 1: CHART ---
-        st.subheader(f"{selected_name} Trajectory Projection")
+        col1, col2 = st.columns([7, 3], gap="large")
+        
+        with col1:
+            st.subheader(f"{selected_name} Trajectory Projection")
         
         fig = go.Figure()
         # Historical Area
@@ -600,12 +623,7 @@ with st.spinner("AI Models Computing Consensus..."):
         st.plotly_chart(fig, use_container_width=True)
         st.caption(f"**Models inside current ensemble:** {', '.join(final_result['models_used'])}")
         
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        
-        # --- 50/50 LAYOUT ROW 2: TELEMETRY & SIMULATOR ---
-        col1, col2 = st.columns(2, gap="large")
-        
-        with col1:
+        with col2:
             st.subheader("Actionable Telemetry")
             
             # --- MARKET DRIVERS ---
@@ -776,28 +794,6 @@ with st.spinner("AI Models Computing Consensus..."):
             st.markdown(clean_html, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
-        with col2:
-            # --- Investment Simulator ---
-            st.subheader("Investment Simulator")
-            st.caption("See what the AI forecast could mean for a sample investment. Not guaranteed profit.")
-
-            investment = st.number_input(
-                "Investment Amount ($)",
-                min_value=100.0, value=1000.0, step=100.0,
-                key=f"investment_{selected_key}_{selected_horizon}"
-            )
-
-            expected_profit = investment * (pred_move_pct / 100)
-            future_value = investment + expected_profit
-
-            sim_col1, sim_col2 = st.columns(2)
-            with sim_col1:
-                st.metric("Est. Gain/Loss", f"${expected_profit:,.2f}", delta=f"{pred_move_sign}{pred_move_pct:.2f}%")
-            with sim_col2:
-                st.metric("Est. Future Value", f"${future_value:,.2f}")
-                
-            st.markdown("<br><br>", unsafe_allow_html=True)
-
             plan_data = {
                 "selected_name": selected_name,
                 "selected_horizon_name": selected_horizon_name,
@@ -811,16 +807,13 @@ with st.spinner("AI Models Computing Consensus..."):
                 "risk_score": risk_score,
                 "recommendation": recommendation,
                 "rec_color": rec_color,
-                "investment": investment,
-                "expected_profit": expected_profit,
-                "future_value": future_value,
                 "annualized_volatility": annualized_volatility,
                 "max_drawdown_pct": max_drawdown_pct,
                 "downside_volatility": downside_volatility,
                 "models_used": final_result['models_used']
             }
             
-            if st.button(f"VIEW {selected_name.upper()} INVESTMENT PLAN", use_container_width=True):
+            if st.button(f"LAUNCH INVESTMENT SIMULATOR", use_container_width=True):
                 show_investment_plan(plan_data)
 
     except Exception as e:
