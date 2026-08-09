@@ -100,21 +100,21 @@ st.markdown("""
     }
     
     /* Custom Interactive Pills */
-    div[data-testid="stPills"] {
+    div[data-testid="stButtonGroup"] {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-bottom: 20px;
         width: 100%;
     }
-    div[data-testid="stPills"] [data-testid="stWidgetLabel"] {
+    div[data-testid="stButtonGroup"] [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
         text-align: center !important;
         width: 100% !important;
         margin-bottom: 12px;
     }
-    div[data-testid="stPills"] [data-testid="stWidgetLabel"] p {
+    div[data-testid="stButtonGroup"] [data-testid="stWidgetLabel"] p {
         color: #8B949E !important;
         font-size: 13px !important;
         font-weight: 600 !important;
@@ -123,13 +123,13 @@ st.markdown("""
         text-align: center !important;
         margin: 0 auto !important;
     }
-    div[data-testid="stPills"] div[role="radiogroup"] {
+    div[data-testid="stButtonGroup"] div[role="radiogroup"] {
         justify-content: center !important;
         gap: 12px;
         flex-wrap: wrap;
         width: 100%;
     }
-    div[data-testid="stPills"] button {
+    div[data-testid="stButtonGroup"] button {
         padding: 12px 28px !important;
         font-size: 16px !important;
         font-weight: 700 !important;
@@ -144,8 +144,8 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.1) !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
     }
-    div[data-testid="stPills"] button[aria-checked="true"], 
-    div[data-testid="stPills"] button[data-checked="true"] {
+    div[data-testid="stButtonGroup"] button[aria-checked="true"], 
+    div[data-testid="stButtonGroup"] button[data-selected="true"] {
         background: linear-gradient(135deg, #00E676 0%, #00B85C 100%) !important;
         color: #0E1117 !important;
         box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
