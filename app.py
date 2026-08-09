@@ -179,21 +179,28 @@ HORIZONS = {
 @st.cache_data(ttl=3600)
 def get_ticker_data():
     """Fetches latest prices from local CSV files for the ticker tape."""
+    import yfinance as yf
     ticker_html = ""
     for name, key in COMMODITIES.items():
-        file_path = os.path.join('./data', f'{key}.csv')
-        if os.path.exists(file_path):
-            df = pd.read_csv(file_path)
-            last = df['Close'].iloc[-1]
-            prev = df['Close'].iloc[-2]
-            pct = ((last - prev) / prev) * 100
-            
-            color_class = 'pos' if pct >= 0 else 'neg'
-            arrow = '▲' if pct >= 0 else '▼'
-            sign = '+' if pct >= 0 else ''
-            
-            name_short = name.split(' ')[0]
-            ticker_html += f"<div class='ticker-item'>{name_short} ${last:.2f} <span class='{color_class}'>{arrow} {sign}{pct:.2f}%</span></div>"
+        try:
+            # Extract the actual yfinance ticker symbol from the key name (e.g., 'Gold (GC=F)')
+            yf_ticker = name.split('(')[1].split(')')[0]
+            # Fetch last 5 days to guarantee at least 2 valid trading days
+            df = yf.download(yf_ticker, period='5d', progress=False)
+            if len(df) >= 2:
+                last = df['Close'].iloc[-1].item()
+                prev = df['Close'].iloc[-2].item()
+                pct = ((last - prev) / prev) * 100
+                
+                color_class = 'pos' if pct >= 0 else 'neg'
+                arrow = '▲' if pct >= 0 else '▼'
+                sign = '+' if pct >= 0 else ''
+                
+                name_short = name.split(' ')[0]
+                ticker_html += f"<div class='ticker-item'>{name_short} ${last:.2f} <span class='{color_class}'>{arrow} {sign}{pct:.2f}%</span></div>"
+        except Exception as e:
+            # Silent fallback if network fails
+            pass
             
     return f"""
     <div class="ticker-wrap">
