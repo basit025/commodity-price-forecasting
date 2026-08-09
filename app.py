@@ -231,10 +231,13 @@ st.markdown("""
         border-radius: 12px !important;
         border: 1px solid rgba(77,230,255,.3) !important;
         font-weight: 800 !important;
-        font-size: 18px !important;
-        padding: 1rem !important;
+        font-size: 24px !important;
+        padding: 0.8rem !important;
         box-shadow: 0 10px 26px rgba(32,199,232,.18);
         transition: all 0.3s ease !important;
+    }
+    .stButton > button * {
+        font-size: 24px !important;
     }
 
     .stButton > button:hover {
