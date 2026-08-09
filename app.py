@@ -150,7 +150,7 @@ st.markdown("""
     [role="radiogroup"] button *, 
     [role="radiogroup"] label *, 
     [role="radiogroup"] [role="radio"] * {
-        font-size: 18px !important;
+        font-size: 24px !important;
         font-weight: 800 !important;
         color: #D9E8F7 !important;
         padding: 8px 24px !important;
