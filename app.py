@@ -92,58 +92,66 @@ st.markdown("""
     }
 
     /* Custom Interactive Pills (Merged Size) */
-    div[data-testid="stButtonGroup"] {
+    div[data-testid="stPills"] {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-bottom: 20px;
         width: 100%;
     }
-    div[data-testid="stButtonGroup"] [data-testid="stWidgetLabel"] {
+    div[data-testid="stPills"] [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
         text-align: center !important;
         width: 100% !important;
         margin-bottom: 12px;
     }
-    div[data-testid="stButtonGroup"] [data-testid="stWidgetLabel"] p {
+    div[data-testid="stPills"] [data-testid="stWidgetLabel"] p {
         color: #9FB4C8 !important;
-        font-size: 13px !important;
-        font-weight: 600 !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
         text-transform: uppercase !important;
-        letter-spacing: 1px !important;
+        letter-spacing: 1.5px !important;
         text-align: center !important;
         margin: 0 auto !important;
     }
-    div[data-testid="stButtonGroup"] div[role="radiogroup"] {
+    div[data-testid="stPills"] div[role="radiogroup"] {
         justify-content: center !important;
         gap: 12px;
         flex-wrap: wrap;
         width: 100%;
     }
-    div[data-testid="stButtonGroup"] button {
-        padding: 16px 36px !important; /* Retained larger size */
-        font-size: 18px !important;    /* Retained larger size */
-        font-weight: 700 !important;
+    div[data-testid="stPills"] button {
+        padding: 16px 36px !important; 
         border-radius: 35px !important;
         background: #111C2E !important;
         border: 1px solid #29425F !important;
-        color: #D9E8F7 !important;
         transition: all 0.3s ease !important;
-        letter-spacing: 0.5px !important;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
     }
-    div[data-testid="stButtonGroup"] button:hover {
-        border-color: #4DE6FF !important;
-        color: #4DE6FF !important;
-        background: #14243A !important;
+    div[data-testid="stPills"] button p {
+        font-size: 18px !important;    
+        font-weight: 700 !important;
+        color: #D9E8F7 !important;
+        letter-spacing: 0.5px !important;
     }
-    div[data-testid="stButtonGroup"] button[aria-checked="true"], 
-    div[data-testid="stButtonGroup"] button[data-selected="true"] {
+    div[data-testid="stPills"] button:hover {
+        border-color: #4DE6FF !important;
+        background: #14243A !important;
+        transform: translateY(-2px);
+    }
+    div[data-testid="stPills"] button:hover p {
+        color: #4DE6FF !important;
+    }
+    div[data-testid="stPills"] button[aria-checked="true"], 
+    div[data-testid="stPills"] button[data-selected="true"] {
         background: linear-gradient(135deg, #435CFF 0%, #20C7E8 100%) !important;
-        color: #F8FDFF !important;
         box-shadow: 0 8px 24px rgba(49,127,255,.25) !important;
         border: none !important;
+    }
+    div[data-testid="stPills"] button[aria-checked="true"] p, 
+    div[data-testid="stPills"] button[data-selected="true"] p {
+        color: #F8FDFF !important;
     }
 
     /* Inputs & Metrics */
@@ -156,6 +164,12 @@ st.markdown("""
         min-height: 132px;
         overflow: hidden;
         box-sizing: border-box;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.4) !important;
+        border-color: rgba(77,230,255,0.4) !important;
     }
 
     div[data-testid="stMetricLabel"] {
@@ -415,6 +429,80 @@ def generate_market_drivers(historical_features_df):
          
     return drivers[:3]
 
+# --- MODALS ---
+@st.dialog("AI Investment Plan", width="large")
+def show_investment_plan(data: dict):
+    direction_word = "rise" if data['pred_move_pct'] > 0 else "fall" if data['pred_move_pct'] < 0 else "stay stable"
+    confidence_label = "High" if data['confidence'] >= 75 else "Moderate" if data['confidence'] >= 55 else "Low"
+    gain_color = "#59D8FF" if data['expected_profit'] >= 0 else "#8A6CFF"
+    
+    st.markdown(
+        f"""
+        <div class="plan-hero">
+            <div class="plan-eyebrow">AI-Powered Investment Summary</div>
+            <div class="plan-title">{data['selected_name']} • {data['selected_horizon_name']} Outlook</div>
+            <div class="plan-subtitle">
+                The model currently expects the price to {direction_word}.
+                Forecast confidence is {confidence_label.lower()} at {data['confidence']:.1f}%.
+            </div>
+        </div>
+        """, unsafe_allow_html=True
+    )
+
+    c1, c2, c3 = st.columns(3)
+    with c1: st.metric("Current Price", f"${data['current_price']:,.2f}")
+    with c2: st.metric("Predicted Price", f"${data['predicted_price']:,.2f}")
+    with c3: st.metric("Expected Return", f"{data['pred_move_sign']}{data['pred_move_pct']:.2f}%")
+
+    r1, r2, r3 = st.columns(3)
+    with r1: st.metric("Confidence", f"{data['confidence']:.1f}%")
+    with r2: st.metric("Risk Level", data['risk_level'])
+    with r3: st.metric("Risk Score", f"{data['risk_score']:.0f}/100")
+
+    st.markdown(
+        f"""
+        <div class="rec-block">
+            <div class="rec-label">Recommendation</div>
+            <div class="rec-value" style="color:{data['rec_color']};">{data['recommendation']}</div>
+            <div style="color:#9FB4C8; font-size:13px; margin-top:7px;">
+                Based on the selected horizon, predicted return, confidence and quantified risk.
+            </div>
+        </div>
+        """, unsafe_allow_html=True
+    )
+
+    st.markdown('<div class="section-heading">Investment Simulation</div>', unsafe_allow_html=True)
+
+    s1, s2, s3 = st.columns(3)
+    with s1: st.metric("Investment Amount", f"${data['investment']:,.2f}")
+    with s2: st.metric("Estimated Gain / Loss", f"${data['expected_profit']:,.2f}", delta=f"{data['pred_move_sign']}{data['pred_move_pct']:.2f}%")
+    with s3: st.metric("Estimated Future Value", f"${data['future_value']:,.2f}")
+
+    st.markdown(
+        f"""
+        <div class="gain-banner">
+            <div class="label">Estimated {"Gain" if data['expected_profit'] >= 0 else "Loss"}</div>
+            <div class="value" style="color:{gain_color};">${data['expected_profit']:,.2f}</div>
+        </div>
+        """, unsafe_allow_html=True
+    )
+
+    st.markdown('<div class="section-heading">Risk Snapshot</div>', unsafe_allow_html=True)
+    q1, q2, q3 = st.columns(3)
+    with q1: st.metric("Annualised Volatility", f"{data['annualized_volatility']:.1f}%")
+    with q2: st.metric("Max Drawdown", f"{data['max_drawdown_pct']:.1f}%")
+    with q3: st.metric("Downside Volatility", f"{data['downside_volatility']:.1f}%")
+
+    st.markdown('<div class="section-heading">Plan Details</div>', unsafe_allow_html=True)
+    d1, d2 = st.columns(2)
+    with d1:
+        st.write(f"**Commodity:** {data['selected_name']}")
+        st.write(f"**Horizon:** {data['selected_horizon_name']} ({data['selected_horizon']} days)")
+    with d2:
+        st.write(f"**Models:** {', '.join(data['models_used'])}")
+        st.write(f"**Risk Level:** {data['risk_level']}")
+
+
 # --- UI RENDERING ---
 
 st.markdown("<h1 class=\"app-title\">FundForge <span>AI Terminal</span></h1>", unsafe_allow_html=True)
@@ -476,45 +564,48 @@ with st.spinner("AI Models Computing Consensus..."):
         is_up = final_result['predicted_return'] > 0
         signal_color = "#4DE6FF" if is_up else "#7C5CFF"
         
-        col1, col2 = st.columns([7, 3])
+        # --- FULL WIDTH LAYOUT ROW 1: CHART ---
+        st.subheader(f"{selected_name} Trajectory Projection")
+        
+        fig = go.Figure()
+        # Historical Area
+        fig.add_trace(go.Scatter(
+            x=hist_dates, y=hist_prices,
+            fill='tozeroy',
+            mode='lines',
+            line=dict(color='#4F6BFF', width=2),
+            fillcolor='rgba(79, 107, 255, 0.10)',
+            name='Historical Price'
+        ))
+        # Multi-Horizon Projection Line
+        fig.add_trace(go.Scatter(
+            x=path_dates,
+            y=path_prices,
+            mode='lines+markers',
+            line=dict(color=signal_color, width=3, dash='dash', shape='spline'), 
+            marker=dict(size=8, color=signal_color),
+            name='AI Multi-Horizon Path'
+        ))
+        
+        fig.update_layout(
+            plot_bgcolor='#07101E',
+            paper_bgcolor='#07101E',
+            font=dict(color='#9FB4C8'),
+            xaxis=dict(showgrid=False, title=''),
+            yaxis=dict(showgrid=True, gridcolor='#243954', title='Price (USD)'),
+            margin=dict(l=0, r=0, t=20, b=0),
+            height=500,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption(f"**Models inside current ensemble:** {', '.join(final_result['models_used'])}")
+        
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        
+        # --- 50/50 LAYOUT ROW 2: TELEMETRY & SIMULATOR ---
+        col1, col2 = st.columns(2, gap="large")
         
         with col1:
-            st.subheader(f"{selected_name} Trajectory Projection")
-            
-            fig = go.Figure()
-            # Historical Area
-            fig.add_trace(go.Scatter(
-                x=hist_dates, y=hist_prices,
-                fill='tozeroy',
-                mode='lines',
-                line=dict(color='#4F6BFF', width=2),
-                fillcolor='rgba(79, 107, 255, 0.10)',
-                name='Historical Price'
-            ))
-            # Multi-Horizon Projection Line
-            fig.add_trace(go.Scatter(
-                x=path_dates,
-                y=path_prices,
-                mode='lines+markers',
-                line=dict(color=signal_color, width=3, dash='dash', shape='spline'), 
-                marker=dict(size=8, color=signal_color),
-                name='AI Multi-Horizon Path'
-            ))
-            
-            fig.update_layout(
-                plot_bgcolor='#07101E',
-                paper_bgcolor='#07101E',
-                font=dict(color='#9FB4C8'),
-                xaxis=dict(showgrid=False, title=''),
-                yaxis=dict(showgrid=True, gridcolor='#243954', title='Price (USD)'),
-                margin=dict(l=0, r=0, t=20, b=0),
-                height=500,
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            st.caption(f"**Models inside current ensemble:** {', '.join(final_result['models_used'])}")
-            
-        with col2:
             st.subheader("Actionable Telemetry")
             
             # --- MARKET DRIVERS ---
@@ -685,8 +776,9 @@ with st.spinner("AI Models Computing Consensus..."):
             st.markdown(clean_html, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
+        with col2:
             # --- Investment Simulator ---
-            st.markdown("### Investment Simulator")
+            st.subheader("Investment Simulator")
             st.caption("See what the AI forecast could mean for a sample investment. Not guaranteed profit.")
 
             investment = st.number_input(
@@ -703,82 +795,36 @@ with st.spinner("AI Models Computing Consensus..."):
                 st.metric("Est. Gain/Loss", f"${expected_profit:,.2f}", delta=f"{pred_move_sign}{pred_move_pct:.2f}%")
             with sim_col2:
                 st.metric("Est. Future Value", f"${future_value:,.2f}")
-
-            # --- Modal Dialog ---
-            @st.dialog(f"{selected_name} Investment Plan", width="large")
-            def show_investment_plan():
-                direction_word = "rise" if pred_move_pct > 0 else "fall" if pred_move_pct < 0 else "stay stable"
-                confidence_label = "High" if confidence >= 75 else "Moderate" if confidence >= 55 else "Low"
-                gain_color = "#59D8FF" if expected_profit >= 0 else "#8A6CFF"
                 
-                st.markdown(
-                    f"""
-                    <div class="plan-hero">
-                        <div class="plan-eyebrow">AI-Powered Investment Summary</div>
-                        <div class="plan-title">{selected_name} • {selected_horizon_name} Outlook</div>
-                        <div class="plan-subtitle">
-                            The model currently expects the price to {direction_word}.
-                            Forecast confidence is {confidence_label.lower()} at {confidence:.1f}%.
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-
-                c1, c2, c3 = st.columns(3)
-                with c1: st.metric("Current Price", f"${final_result['current_price']:,.2f}")
-                with c2: st.metric("Predicted Price", f"${final_result['predicted_price']:,.2f}")
-                with c3: st.metric("Expected Return", f"{pred_move_sign}{pred_move_pct:.2f}%")
-
-                r1, r2, r3 = st.columns(3)
-                with r1: st.metric("Confidence", f"{confidence:.1f}%")
-                with r2: st.metric("Risk Level", risk_level)
-                with r3: st.metric("Risk Score", f"{risk_score:.0f}/100")
-
-                st.markdown(
-                    f"""
-                    <div class="rec-block">
-                        <div class="rec-label">Recommendation</div>
-                        <div class="rec-value" style="color:{rec_color};">{recommendation}</div>
-                        <div style="color:#9FB4C8; font-size:13px; margin-top:7px;">
-                            Based on the selected horizon, predicted return, confidence and quantified risk.
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-
-                st.markdown('<div class="section-heading">Investment Simulation</div>', unsafe_allow_html=True)
-
-                s1, s2, s3 = st.columns(3)
-                with s1: st.metric("Investment Amount", f"${investment:,.2f}")
-                with s2: st.metric("Estimated Gain / Loss", f"${expected_profit:,.2f}", delta=f"{pred_move_sign}{pred_move_pct:.2f}%")
-                with s3: st.metric("Estimated Future Value", f"${future_value:,.2f}")
-
-                st.markdown(
-                    f"""
-                    <div class="gain-banner">
-                        <div class="label">Estimated {"Gain" if expected_profit >= 0 else "Loss"}</div>
-                        <div class="value" style="color:{gain_color};">${expected_profit:,.2f}</div>
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-
-                st.markdown('<div class="section-heading">Risk Snapshot</div>', unsafe_allow_html=True)
-                q1, q2, q3 = st.columns(3)
-                with q1: st.metric("Annualised Volatility", f"{annualized_volatility:.1f}%")
-                with q2: st.metric("Max Drawdown", f"{max_drawdown_pct:.1f}%")
-                with q3: st.metric("Downside Volatility", f"{downside_volatility:.1f}%")
-
-                st.markdown('<div class="section-heading">Plan Details</div>', unsafe_allow_html=True)
-                d1, d2 = st.columns(2)
-                with d1:
-                    st.write(f"**Commodity:** {selected_name}")
-                    st.write(f"**Horizon:** {selected_horizon_name} ({selected_horizon} days)")
-                with d2:
-                    st.write(f"**Models:** {', '.join(final_result['models_used'])}")
-                    st.write(f"**Risk Level:** {risk_level}")
-                    
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            
             if st.button(f"VIEW {selected_name.upper()} INVESTMENT PLAN", use_container_width=True):
                 show_investment_plan()
+
+            plan_data = {
+                "selected_name": selected_name,
+                "selected_horizon_name": selected_horizon_name,
+                "selected_horizon": selected_horizon,
+                "pred_move_pct": pred_move_pct,
+                "confidence": confidence,
+                "current_price": final_result['current_price'],
+                "predicted_price": final_result['predicted_price'],
+                "pred_move_sign": pred_move_sign,
+                "risk_level": risk_level,
+                "risk_score": risk_score,
+                "recommendation": recommendation,
+                "rec_color": rec_color,
+                "investment": investment,
+                "expected_profit": expected_profit,
+                "future_value": future_value,
+                "annualized_volatility": annualized_volatility,
+                "max_drawdown_pct": max_drawdown_pct,
+                "downside_volatility": downside_volatility,
+                "models_used": final_result['models_used']
+            }
+            
+            if st.button(f"VIEW {selected_name.upper()} INVESTMENT PLAN", use_container_width=True):
+                show_investment_plan(plan_data)
 
     except Exception as e:
         st.error(f"Backend Engine Error: {str(e)}")
