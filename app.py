@@ -530,6 +530,8 @@ st.markdown(f'''
 st.markdown(get_ticker_data(), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
+simulator_btn_placeholder = st.empty()
+st.markdown("<br>", unsafe_allow_html=True)
 
 selected_name = st.pills(
     "Select Asset",
@@ -813,6 +815,7 @@ with st.spinner("AI Models Computing Consensus..."):
                 "models_used": final_result['models_used']
             }
             
+        with simulator_btn_placeholder:
             if st.button(f"LAUNCH INVESTMENT SIMULATOR", use_container_width=True):
                 show_investment_plan(plan_data)
 
