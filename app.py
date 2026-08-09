@@ -130,10 +130,10 @@ st.markdown("""
         width: 100%;
     }
     div[data-testid="stButtonGroup"] button {
-        padding: 12px 28px !important;
-        font-size: 16px !important;
+        padding: 16px 36px !important;
+        font-size: 18px !important;
         font-weight: 700 !important;
-        border-radius: 30px !important;
+        border-radius: 35px !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         background-color: rgba(255, 255, 255, 0.03) !important;
         color: #E2E8F0 !important;
@@ -171,7 +171,7 @@ HORIZONS = {
     '1M': 28,
     '6W': 42,
     '2M': 60,
-    '1Q': 90,
+    '3M': 90,
     '4M': 120
 }
 
