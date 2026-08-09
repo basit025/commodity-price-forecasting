@@ -156,12 +156,12 @@ st.markdown("""
 
 # --- CONFIG & STATE ---
 COMMODITIES = {
-    'Gold (GC=F)': 'gold',
-    'Silver (SI=F)': 'silver',
-    'Copper (HG=F)': 'copper',
-    'Crude Oil (CL=F)': 'crude_oil',
-    'Natural Gas (NG=F)': 'natural_gas',
-    'Wheat (ZW=F)': 'wheat'
+    'Gold': 'gold',
+    'Silver': 'silver',
+    'Copper': 'copper',
+    'Crude Oil': 'crude_oil',
+    'Natural Gas': 'natural_gas',
+    'Wheat': 'wheat'
 }
 
 HORIZONS = {
@@ -180,11 +180,14 @@ HORIZONS = {
 def get_ticker_data():
     """Fetches latest prices from local CSV files for the ticker tape."""
     import yfinance as yf
+    from live_data_pipeline import ASSET_TICKERS
     ticker_html = ""
     for name, key in COMMODITIES.items():
         try:
-            # Extract the actual yfinance ticker symbol from the key name (e.g., 'Gold (GC=F)')
-            yf_ticker = name.split('(')[1].split(')')[0]
+            # Extract the actual yfinance ticker symbol from the pipeline mapping
+            yf_ticker = ASSET_TICKERS.get(key)
+            if not yf_ticker:
+                continue
             # Fetch last 5 days to guarantee at least 2 valid trading days
             df = yf.download(yf_ticker, period='5d', progress=False)
             if len(df) >= 2:
@@ -196,8 +199,7 @@ def get_ticker_data():
                 arrow = '▲' if pct >= 0 else '▼'
                 sign = '+' if pct >= 0 else ''
                 
-                name_short = name.split(' ')[0]
-                ticker_html += f"<div class='ticker-item'>{name_short} ${last:.2f} <span class='{color_class}'>{arrow} {sign}{pct:.2f}%</span></div>"
+                ticker_html += f"<div class='ticker-item'>{name} ${last:.2f} <span class='{color_class}'>{arrow} {sign}{pct:.2f}%</span></div>"
         except Exception as e:
             # Silent fallback if network fails
             pass
