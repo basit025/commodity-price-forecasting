@@ -430,42 +430,6 @@ def get_cached_trajectory(commodity_key, max_horizon):
         results[h] = ensemble_predict(commodity_key, h, top_n=3)
     return target_horizons, results
 
-def generate_market_drivers(historical_features_df):
-    """Generates dynamic market driver text based on the latest feature row."""
-    drivers = []
-    latest = historical_features_df.iloc[-1]
-    
-    if 'RSI_14' in historical_features_df.columns:
-        if latest['RSI_14'] > 65:
-            drivers.append(("RSI approaching overbought", "-"))
-        elif latest['RSI_14'] < 35:
-            drivers.append(("RSI heavily oversold", "+"))
-            
-    if 'Close_to_MA_50' in historical_features_df.columns:
-        if latest['Close_to_MA_50'] > 1.0:
-            drivers.append(("Price above 50-day moving average", "+"))
-        else:
-            drivers.append(("Price below 50-day moving average", "-"))
-            
-    if 'USD_Index' in historical_features_df.columns:
-        dxy_5_days_ago = historical_features_df.iloc[-6]['USD_Index'] if len(historical_features_df) > 5 else latest['USD_Index']
-        if latest['USD_Index'] < dxy_5_days_ago:
-            drivers.append(("USD Index weakening", "+"))
-        elif latest['USD_Index'] > dxy_5_days_ago:
-            drivers.append(("USD Index strengthening", "-"))
-            
-    if 'US_10Y_Yield' in historical_features_df.columns:
-        us10y_5_days_ago = historical_features_df.iloc[-6]['US_10Y_Yield'] if len(historical_features_df) > 5 else latest['US_10Y_Yield']
-        if latest['US_10Y_Yield'] < us10y_5_days_ago:
-            drivers.append(("Treasury yields falling", "+"))
-        elif latest['US_10Y_Yield'] > us10y_5_days_ago:
-            drivers.append(("Treasury yields rising", "-"))
-            
-    if 'VIX' in historical_features_df.columns:
-        if latest['VIX'] > 20:
-            drivers.append(("High macro volatility (VIX > 20)", "-"))
-         
-    return drivers[:3]
 
 # --- MODALS ---
 @st.dialog("AI Investment Plan", width="large")
@@ -671,17 +635,26 @@ with st.spinner("AI Models Computing Consensus..."):
             st.subheader("Actionable Telemetry")
             
             # --- MARKET DRIVERS ---
-            drivers = generate_market_drivers(df_live_seq)
+            drivers = final_result.get('market_drivers', [])
             driver_html = ""
-            for driver_text, sentiment in drivers:
-                color = "#00C853" if sentiment == "+" else "#FF5252"
+            for driver in drivers:
+                feat = driver['feature']
+                impact_str = f"{driver['impact']:+.4f}"
+                typ = driver['type']
+                color = "#00C853" if "Bullish" in typ else "#FF5252"
+                
+                # Render clickable news link if SHAP detected sentiment as a driver
+                if 'url' in driver and driver['url']:
+                    feat_html = f"📰 <a href='{driver['url']}' target='_blank' style='color: #4DE6FF; text-decoration: underline;'>{driver.get('headline', feat)}</a>"
+                else:
+                    feat_html = feat
+                    
                 driver_html += f'''
                 <div class="driver-item">
-                    <span style="color: #E2E8F0; font-weight: 500; font-size: 16px;">{driver_text}</span>
-                    <span style="color: {color}; font-weight: 900; font-size: 22px; line-height: 1;">{sentiment}</span>
+                    <span style="color: #E2E8F0; font-weight: 500; font-size: 16px; margin-bottom: 4px; display: block;">{feat_html}</span>
+                    <span style="color: {color}; font-weight: 900; font-size: 16px; line-height: 1;">{typ} (SHAP: {impact_str})</span>
                 </div>
-                '''
-                
+                '''                
             if is_up is True:
                 badge_bg = "rgba(0, 200, 83, 0.12)"
                 badge_color = "#00C853"
@@ -805,9 +778,9 @@ with st.spinner("AI Models Computing Consensus..."):
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; color: #9FB4C8; font-size: 16px; margin-bottom: 10px; font-weight: 600;">
-                    <span>${visual_min:,.2f}</span>
-                    <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Predicted Range</span>
-                    <span>${visual_max:,.2f}</span>
+                    <span>${p_min:,.2f} (Floor)</span>
+                    <span style="text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">True Risk Interval</span>
+                    <span>(Ceiling) ${p_max:,.2f}</span>
                 </div>
                 
                 <div style="position: relative; width: 100%; height: 6px; background-color: #2D3748; border-radius: 4px; margin-bottom: 30px; overflow: visible;">
@@ -871,5 +844,7 @@ with st.spinner("AI Models Computing Consensus..."):
                 show_investment_plan(plan_data)
 
     except Exception as e:
+        import traceback
         st.error(f"Backend Engine Error: {str(e)}")
+        st.error(f"<pre>{traceback.format_exc()}</pre>", unsafe_allow_html=True)
         st.info("Check if models and data pipeline are functioning correctly.")

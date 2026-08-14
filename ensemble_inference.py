@@ -8,6 +8,7 @@ from xgboost import XGBRegressor
 from lightgbm import Booster
 from catboost import CatBoostRegressor
 
+import shap
 from inference_utils import LSTMModel, GRUModel, TransformerModel, NBeatsModel, TFTModel
 from live_data_pipeline import get_live_features
 
@@ -37,19 +38,19 @@ def get_top_models(commodity, horizon, top_n=3):
     # ML Models
     if commodity in ml_data:
         for model_name, metrics in ml_data[commodity].items():
-            all_models[model_name] = metrics['Dir_Acc']
+            all_models[model_name] = {'acc': metrics['Dir_Acc'], 'mae': metrics['MAE']}
             
     # DL Models
     if commodity in dl_data:
         for model_name, metrics in dl_data[commodity].items():
-            all_models[model_name] = metrics['Dir_Acc']
+            all_models[model_name] = {'acc': metrics['Dir_Acc'], 'mae': metrics['MAE']}
             
     if not all_models:
         raise ValueError(f"Commodity {commodity} not found in metrics files.")
         
     # Sort models by Directional Accuracy descending
-    sorted_models = sorted(all_models.items(), key=lambda item: item[1], reverse=True)
-    return sorted_models[:top_n]
+    sorted_models = sorted(all_models.items(), key=lambda item: item[1]['acc'], reverse=True)
+    return [(m, data['acc'], data['mae']) for m, data in sorted_models[:top_n]]
 
 def prepare_data(commodity, horizon):
     """Loads CSV data or live data, extracts final features, and prepares inputs for ML and DL."""
@@ -109,46 +110,128 @@ def load_and_predict(model_name, commodity, horizon, X_ml, X_dl_tensor, input_si
     if model_name == 'XGBoost':
         model = XGBRegressor()
         model.load_model(os.path.join(MODELS_DIR, f'{commodity}_xgboost_{horizon}d.json'))
-        pred_return = model.predict(X_ml)[0]
+        try:
+            pred_return = model.predict(X_ml)[0]
+        except ValueError:
+            # Fallback for reverted champions expecting 27 features
+            pred_return = model.predict(X_ml[:, :27])[0]
         
     # LightGBM
     elif model_name == 'LightGBM':
         model = Booster(model_file=os.path.join(MODELS_DIR, f'{commodity}_lightgbm_{horizon}d.txt'))
+        if model.num_feature() == 27 and X_ml.shape[1] > 27:
+            X_ml = X_ml[:, :27]
         pred_return = model.predict(X_ml)[0]
         
     # CatBoost
     elif model_name == 'CatBoost':
         model = CatBoostRegressor()
         model.load_model(os.path.join(MODELS_DIR, f'{commodity}_catboost_{horizon}d.cbm'))
+        if len(model.feature_names_) == 27 and X_ml.shape[1] > 27:
+            X_ml = X_ml[:, :27]
         pred_return = model.predict(X_ml)[0]
         
     # RandomForest
     elif model_name == 'RandomForest':
         model = joblib.load(os.path.join(MODELS_DIR, f'{commodity}_randomforest_{horizon}d.pkl'))
+        if model.n_features_in_ == 27 and X_ml.shape[1] > 27:
+            X_ml = X_ml[:, :27]
         pred_return = model.predict(X_ml)[0]
         
     # Deep Learning PyTorch Models
     else:
+        model_path = os.path.join(MODELS_DIR, f'{commodity}_{model_name.lower().replace("-","")}_{horizon}d.pt')
+        state_dict = torch.load(model_path, map_location=device)
+        
+        # Dynamically detect if this is a reverted champion expecting 27 features
+        expected_input = input_size
+        if 'lstm.weight_ih_l0' in state_dict:
+            expected_input = state_dict['lstm.weight_ih_l0'].shape[1]
+        elif 'gru.weight_ih_l0' in state_dict:
+            expected_input = state_dict['gru.weight_ih_l0'].shape[1]
+        elif 'input_proj.weight' in state_dict:
+            expected_input = state_dict['input_proj.weight'].shape[1]
+        elif 'block1.fc1.weight' in state_dict:
+            expected_input = state_dict['block1.fc1.weight'].shape[1] // SEQ_LENGTH
+            
+        if expected_input == 27 and input_size > 27:
+            X_dl_tensor = X_dl_tensor[:, :, :27]
+            dynamic_input_size = 27
+        else:
+            dynamic_input_size = input_size
+
         if model_name == 'LSTM':
-            model = LSTMModel(input_size, HIDDEN_SIZE)
+            model = LSTMModel(dynamic_input_size, HIDDEN_SIZE)
         elif model_name == 'GRU':
-            model = GRUModel(input_size, HIDDEN_SIZE)
+            model = GRUModel(dynamic_input_size, HIDDEN_SIZE)
         elif model_name == 'Transformer':
-            model = TransformerModel(input_size, HIDDEN_SIZE)
+            model = TransformerModel(dynamic_input_size, HIDDEN_SIZE)
         elif model_name == 'N-BEATS':
-            model = NBeatsModel(SEQ_LENGTH, input_size)
+            model = NBeatsModel(SEQ_LENGTH, dynamic_input_size)
         elif model_name == 'TFT':
-            model = TFTModel(input_size, HIDDEN_SIZE)
+            model = TFTModel(dynamic_input_size, HIDDEN_SIZE)
         else:
             raise ValueError(f"Unknown model architecture: {model_name}")
             
-        model_path = os.path.join(MODELS_DIR, f'{commodity}_{model_name.lower().replace("-","")}_{horizon}d.pt')
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        model.load_state_dict(state_dict)
         model.eval()
         with torch.no_grad():
             pred_return = model(X_dl_tensor).squeeze().item()
             
-    return pred_return
+    return pred_return, model
+
+def get_latest_news_url(commodity):
+    """Retrieves the URL of the most recent live news article."""
+    try:
+        live_csv = os.path.join(DATA_DIR, f"{commodity}_news_live.csv")
+        if os.path.exists(live_csv):
+            df_news = pd.read_csv(live_csv)
+            if not df_news.empty and 'URL' in df_news.columns:
+                return df_news.iloc[-1]['URL'], df_news.iloc[-1]['Headline']
+    except:
+        pass
+    return None, None
+
+def calculate_shap_drivers(model_name, model, X_ml, features, commodity):
+    """Uses SHAP to mathematically determine the top 3 drivers of the prediction."""
+    drivers = []
+    try:
+        # SHAP only supports TreeExplainer for these specific models out of the box
+        if model_name in ['XGBoost', 'LightGBM', 'CatBoost', 'RandomForest']:
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(X_ml)
+            
+            # For a single prediction, shap_values is a 1D array
+            if len(shap_values.shape) > 1:
+                shap_vals = shap_values[0]
+            else:
+                shap_vals = shap_values
+                
+            # Zip features with their SHAP impact values
+            feature_impacts = list(zip(features, shap_vals))
+            # Sort by absolute impact (magnitude)
+            feature_impacts.sort(key=lambda x: abs(x[1]), reverse=True)
+            
+            latest_url, latest_headline = get_latest_news_url(commodity)
+            
+            for feat, impact in feature_impacts[:3]:
+                driver = {
+                    'feature': feat,
+                    'impact': impact,
+                    'type': 'Bullish 🟢' if impact > 0 else 'Bearish 🔴'
+                }
+                
+                # If the feature is sentiment-related, attach the news URL
+                if 'Sentiment' in feat or 'Daily_NSS' in feat or 'News_Volume' in feat:
+                    if latest_url:
+                        driver['url'] = latest_url
+                        driver['headline'] = latest_headline
+                        
+                drivers.append(driver)
+    except Exception as e:
+        print(f"SHAP explanation failed: {e}")
+        
+    return drivers
 
 def ensemble_predict(commodity, horizon, top_n=3):
     """
@@ -158,11 +241,11 @@ def ensemble_predict(commodity, horizon, top_n=3):
     top_models = get_top_models(commodity, horizon, top_n)
     print(f"\\n{'='*50}\\nENSEMBLE INFERENCE: {commodity.upper()} ({horizon}-Day)\\n{'='*50}")
     print(f"Selected Top {top_n} Models Based on Directional Accuracy:")
-    for m, acc in top_models:
-        print(f" - {m}: {acc}%")
+    for m, acc, mae in top_models:
+        print(f" - {m}: {acc}% (MAE: {mae:.4f})")
         
     # 2. Prepare Data
-    X_ml, X_dl_tensor, input_size, current_price, _ = prepare_data(commodity, horizon)
+    X_ml, X_dl_tensor, input_size, current_price, features = prepare_data(commodity, horizon)
     print(f"Current Price (Today): ${current_price:.4f}")
     
     # 3. Run Inference
@@ -170,14 +253,24 @@ def ensemble_predict(commodity, horizon, top_n=3):
     weighted_return = 0
     predictions = {}
     
-    for model_name, acc in top_models:
+    top_drivers = []
+    
+    total_mae = 0
+    
+    for model_name, acc, mae in top_models:
         try:
-            pred_ret = load_and_predict(model_name, commodity, horizon, X_ml, X_dl_tensor, input_size)
+            pred_ret, model_obj = load_and_predict(model_name, commodity, horizon, X_ml, X_dl_tensor, input_size)
             predictions[model_name] = pred_ret
             # Weight is the historical accuracy
             weighted_return += pred_ret * acc
             total_weight += acc
+            total_mae += mae * acc
             print(f"[{model_name}] Predicted Return: {pred_ret:.4f} (Implied Price: ${current_price * (1 + pred_ret):.4f})")
+            
+            # Calculate drivers from the highest-accuracy tree model
+            if not top_drivers and model_name in ['XGBoost', 'LightGBM', 'CatBoost', 'RandomForest']:
+                top_drivers = calculate_shap_drivers(model_name, model_obj, X_ml, features, commodity)
+                
         except Exception as e:
             print(f"⚠️ Error loading {model_name}: {str(e)}")
             continue
@@ -190,11 +283,11 @@ def ensemble_predict(commodity, horizon, top_n=3):
     final_price = current_price * (1 + final_return)
     direction = "UP 🟢" if final_return > 0 else "DOWN 🔴"
     
-    all_returns = list(predictions.values())
-    min_return = min(all_returns)
-    max_return = max(all_returns)
-    predicted_min = current_price * (1 + min_return)
-    predicted_max = current_price * (1 + max_return)
+    # Calculate True Confidence Intervals using historical MAE
+    final_mae = total_mae / total_weight
+    predicted_min = final_price - final_mae
+    predicted_max = final_price + final_mae
+    
     confidence_pct = total_weight / len(predictions) if len(predictions) > 0 else 0
     
     print(f"\\n✅ FINAL ENSEMBLE PREDICTION ({horizon} Days Out)")
@@ -212,7 +305,8 @@ def ensemble_predict(commodity, horizon, top_n=3):
         'predicted_max': predicted_max,
         'confidence_pct': confidence_pct,
         'direction': direction,
-        'models_used': [m[0] for m in top_models]
+        'models_used': [m[0] for m in top_models],
+        'market_drivers': top_drivers
     }
 
 if __name__ == "__main__":

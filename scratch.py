@@ -1,11 +1,5 @@
-import json, os
-from glob import glob
-
-for path in sorted(glob("results/*metrics*.json")):
-    try:
-        with open(path) as f:
-            data = json.load(f)
-        total_models = sum(len(models) for models in data.values())
-        print(f"{os.path.basename(path)}: {len(data)} commodities, {total_models} total model runs")
-    except Exception as e:
-        print(f"Error on {path}: {e}")
+import pandas as pd
+df = pd.read_csv('data/wheat.csv')
+non_zero = df[df['Daily_NSS'] != 0].shape[0]
+print(f"Total rows in wheat.csv: {df.shape[0]}")
+print(f"Rows with non-zero sentiment: {non_zero}")

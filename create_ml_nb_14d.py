@@ -147,8 +147,8 @@ for name, df in tqdm(datasets.items(), desc="Commodities"):
     fi = {}
     
     # 1. XGBoost (Lowered LR for overlapping target generalization)
-    xgb = XGBRegressor(n_estimators=200, learning_rate=0.03, max_depth=6, subsample=0.8, 
-                       colsample_bytree=0.8, reg_alpha=0.1, reg_lambda=1.0, random_state=42,
+    xgb = XGBRegressor(n_estimators=200, learning_rate=0.03, max_depth=5, subsample=0.8, 
+                       colsample_bytree=0.8, reg_alpha=0.1, reg_lambda=3.0, random_state=42,
                        early_stopping_rounds=20)
     xgb.fit(X_train, y_train, eval_set=eval_set_xgb_lgb, verbose=False)
     xgb_ret = xgb.predict(X_test)
@@ -158,8 +158,8 @@ for name, df in tqdm(datasets.items(), desc="Commodities"):
     fi['XGBoost'] = xgb.feature_importances_
     
     # 2. LightGBM (Lowered LR)
-    lgb = LGBMRegressor(n_estimators=200, learning_rate=0.03, max_depth=6, subsample=0.8, 
-                        colsample_bytree=0.8, reg_alpha=0.1, reg_lambda=1.0, random_state=42, verbose=-1)
+    lgb = LGBMRegressor(n_estimators=200, learning_rate=0.03, max_depth=5, subsample=0.8, 
+                        colsample_bytree=0.8, reg_alpha=0.1, reg_lambda=3.0, random_state=42, verbose=-1)
     from lightgbm import early_stopping
     lgb.fit(X_train, y_train, eval_set=eval_set_xgb_lgb, callbacks=[early_stopping(stopping_rounds=20, verbose=False)])
     lgb_ret = lgb.predict(X_test)
@@ -169,7 +169,7 @@ for name, df in tqdm(datasets.items(), desc="Commodities"):
     fi['LightGBM'] = lgb.feature_importances_
     
     # 3. CatBoost (Lowered LR)
-    cat = CatBoostRegressor(iterations=200, learning_rate=0.03, depth=6, l2_leaf_reg=3.0, 
+    cat = CatBoostRegressor(iterations=200, learning_rate=0.03, depth=5, l2_leaf_reg=5.0, 
                             random_seed=42, verbose=0, early_stopping_rounds=20)
     cat.fit(X_train, y_train, eval_set=(X_val, y_val))
     cat_ret = cat.predict(X_test)
@@ -179,7 +179,7 @@ for name, df in tqdm(datasets.items(), desc="Commodities"):
     fi['CatBoost'] = cat.feature_importances_
     
     # 4. Random Forest (Increased min_samples_leaf to 10 for overlapping targets)
-    rf = RandomForestRegressor(n_estimators=300, max_depth=12, min_samples_leaf=10, 
+    rf = RandomForestRegressor(n_estimators=300, max_depth=12, min_samples_leaf=15, 
                                max_features='sqrt', random_state=42, n_jobs=-1)
     rf.fit(X_train, y_train)
     rf_ret = rf.predict(X_test)

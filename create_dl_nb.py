@@ -72,7 +72,7 @@ cells.append(nbf.v4.new_code_cell("""class LSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size):
         super(LSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers=1, batch_first=True)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.25)
         self.fc = nn.Linear(hidden_size, 1)
         
     def forward(self, x):
@@ -84,7 +84,7 @@ class GRUModel(nn.Module):
     def __init__(self, input_size, hidden_size):
         super(GRUModel, self).__init__()
         self.gru = nn.GRU(input_size, hidden_size, num_layers=1, batch_first=True)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.25)
         self.fc = nn.Linear(hidden_size, 1)
         
     def forward(self, x):
@@ -100,7 +100,7 @@ cells.append(nbf.v4.new_code_cell("""class TransformerModel(nn.Module):
         self.input_proj = nn.Linear(input_size, hidden_size)
         encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_size, nhead=num_heads, batch_first=True, dropout=0.2)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.25)
         self.fc = nn.Linear(hidden_size, 1)
         
     def forward(self, x):
@@ -119,7 +119,7 @@ class NBeatsBlock(nn.Module):
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, theta_size)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.25)
         
     def forward(self, x):
         h = self.dropout(self.relu(self.fc1(x)))

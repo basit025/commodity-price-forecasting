@@ -97,7 +97,7 @@ We will execute this integration in **seven sequential steps**, utilizing a **Hy
 **Goal:** Show the user exactly why the AI made its decision.
 *   **Action:** Update `app.py` and `ensemble_inference.py`.
 *   **Strategy:** Delete the hardcoded heuristic rules currently driving the "Primary Market Drivers" UI. Replace them with a live `shap.TreeExplainer`, which outputs the exact top 3 features driving the forecast. 
-*   **Result:** The UI will dynamically say things like: *"Bullish Driver: Sentiment_Spike (+0.8)"*, providing 100% mathematical transparency to the end user.
+*   **Result:** The UI will dynamically say things like: *"Bullish Driver: Sentiment_Spike (+0.8)"*. Furthermore, because we extract and save the `URL` in Step 2, if SHAP detects that a specific news event drove the sentiment, the dashboard will dynamically display the exact headline as a **clickable hyperlink** so the user can read the source article. This provides 100% mathematical and contextual transparency to the end user.
 
 ---
 

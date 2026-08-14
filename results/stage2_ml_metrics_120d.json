@@ -1,230 +1,230 @@
 {
     "gold": {
         "XGBoost": {
-            "MAE": 520.2419,
-            "RMSE": 621.7295,
-            "MAPE": 14.45,
+            "MAE": 518.4169,
+            "RMSE": 620.4094,
+            "MAPE": 14.38,
             "Dir_Acc": 93.78,
-            "R2": 0.4933,
+            "R2": 0.4954,
             "Naive_MAE": 568.2625,
-            "Improvement_Pct": 8.45
+            "Improvement_Pct": 8.77
         },
         "LightGBM": {
-            "MAE": 523.2585,
-            "RMSE": 623.9942,
-            "MAPE": 14.54,
+            "MAE": 515.1756,
+            "RMSE": 617.1349,
+            "MAPE": 14.3,
             "Dir_Acc": 93.78,
-            "R2": 0.4896,
+            "R2": 0.5007,
             "Naive_MAE": 568.2625,
-            "Improvement_Pct": 7.92
+            "Improvement_Pct": 9.34
         },
         "CatBoost": {
-            "MAE": 521.6294,
-            "RMSE": 622.7928,
-            "MAPE": 14.49,
+            "MAE": 518.0751,
+            "RMSE": 618.3509,
+            "MAPE": 14.4,
             "Dir_Acc": 93.78,
-            "R2": 0.4915,
+            "R2": 0.4988,
             "Naive_MAE": 568.2625,
-            "Improvement_Pct": 8.21
+            "Improvement_Pct": 8.83
         },
         "RandomForest": {
-            "MAE": 700.8433,
-            "RMSE": 787.1286,
-            "MAPE": 20.06,
-            "Dir_Acc": 7.53,
-            "R2": 0.1878,
+            "MAE": 667.6746,
+            "RMSE": 766.9153,
+            "MAPE": 18.79,
+            "Dir_Acc": 7.86,
+            "R2": 0.229,
             "Naive_MAE": 568.2625,
-            "Improvement_Pct": -23.33
+            "Improvement_Pct": -17.49
         }
     },
     "silver": {
         "XGBoost": {
-            "MAE": 10.114,
-            "RMSE": 17.116,
-            "MAPE": 16.28,
-            "Dir_Acc": 83.63,
-            "R2": 0.2465,
+            "MAE": 11.863,
+            "RMSE": 18.4128,
+            "MAPE": 20.53,
+            "Dir_Acc": 89.36,
+            "R2": 0.128,
             "Naive_MAE": 12.6236,
-            "Improvement_Pct": 19.88
+            "Improvement_Pct": 6.03
         },
         "LightGBM": {
-            "MAE": 9.88,
-            "RMSE": 16.7692,
-            "MAPE": 15.94,
-            "Dir_Acc": 80.69,
-            "R2": 0.2768,
+            "MAE": 12.0999,
+            "RMSE": 18.5802,
+            "MAPE": 21.12,
+            "Dir_Acc": 89.36,
+            "R2": 0.1121,
             "Naive_MAE": 12.6236,
-            "Improvement_Pct": 21.73
+            "Improvement_Pct": 4.15
         },
         "CatBoost": {
-            "MAE": 10.4228,
-            "RMSE": 17.2428,
-            "MAPE": 17.15,
-            "Dir_Acc": 91.0,
-            "R2": 0.2353,
+            "MAE": 12.1715,
+            "RMSE": 18.6126,
+            "MAPE": 21.3,
+            "Dir_Acc": 89.36,
+            "R2": 0.109,
             "Naive_MAE": 12.6236,
-            "Improvement_Pct": 17.43
+            "Improvement_Pct": 3.58
         },
         "RandomForest": {
-            "MAE": 10.2986,
-            "RMSE": 17.5932,
-            "MAPE": 16.58,
-            "Dir_Acc": 89.2,
-            "R2": 0.2039,
+            "MAE": 11.467,
+            "RMSE": 18.3603,
+            "MAPE": 19.35,
+            "Dir_Acc": 75.12,
+            "R2": 0.133,
             "Naive_MAE": 12.6236,
-            "Improvement_Pct": 18.42
+            "Improvement_Pct": 9.16
         }
     },
     "copper": {
         "XGBoost": {
-            "MAE": 0.5078,
-            "RMSE": 0.6348,
-            "MAPE": 9.82,
-            "Dir_Acc": 60.64,
-            "R2": 0.2594,
+            "MAE": 0.5012,
+            "RMSE": 0.6275,
+            "MAPE": 9.68,
+            "Dir_Acc": 57.42,
+            "R2": 0.2763,
             "Naive_MAE": 0.5484,
-            "Improvement_Pct": 7.39
+            "Improvement_Pct": 8.61
         },
         "LightGBM": {
-            "MAE": 0.5294,
-            "RMSE": 0.6562,
-            "MAPE": 10.19,
-            "Dir_Acc": 51.34,
-            "R2": 0.2087,
+            "MAE": 0.4757,
+            "RMSE": 0.6028,
+            "MAPE": 9.21,
+            "Dir_Acc": 68.69,
+            "R2": 0.3321,
             "Naive_MAE": 0.5484,
-            "Improvement_Pct": 3.46
+            "Improvement_Pct": 13.24
         },
         "CatBoost": {
-            "MAE": 0.5208,
-            "RMSE": 0.6437,
-            "MAPE": 10.02,
-            "Dir_Acc": 55.46,
-            "R2": 0.2385,
+            "MAE": 0.4618,
+            "RMSE": 0.5791,
+            "MAPE": 9.04,
+            "Dir_Acc": 80.5,
+            "R2": 0.3836,
             "Naive_MAE": 0.5484,
-            "Improvement_Pct": 5.02
+            "Improvement_Pct": 15.79
         },
         "RandomForest": {
-            "MAE": 0.537,
-            "RMSE": 0.6653,
-            "MAPE": 10.31,
-            "Dir_Acc": 49.02,
-            "R2": 0.1865,
+            "MAE": 0.536,
+            "RMSE": 0.6758,
+            "MAPE": 10.23,
+            "Dir_Acc": 50.81,
+            "R2": 0.1606,
             "Naive_MAE": 0.5484,
-            "Improvement_Pct": 2.07
+            "Improvement_Pct": 2.26
         }
     },
     "natural_gas": {
         "XGBoost": {
-            "MAE": 1.2359,
-            "RMSE": 1.6053,
-            "MAPE": 43.0,
-            "Dir_Acc": 58.56,
-            "R2": -3.6021,
+            "MAE": 1.0599,
+            "RMSE": 1.3527,
+            "MAPE": 36.77,
+            "Dir_Acc": 59.22,
+            "R2": -2.2674,
             "Naive_MAE": 0.7942,
-            "Improvement_Pct": -55.61
+            "Improvement_Pct": -33.45
         },
         "LightGBM": {
-            "MAE": 1.415,
-            "RMSE": 1.8152,
-            "MAPE": 49.67,
-            "Dir_Acc": 58.56,
-            "R2": -4.8838,
+            "MAE": 1.0767,
+            "RMSE": 1.3602,
+            "MAPE": 37.54,
+            "Dir_Acc": 60.2,
+            "R2": -2.304,
             "Naive_MAE": 0.7942,
-            "Improvement_Pct": -78.17
+            "Improvement_Pct": -35.57
         },
         "CatBoost": {
-            "MAE": 1.2068,
-            "RMSE": 1.5474,
-            "MAPE": 41.79,
-            "Dir_Acc": 58.56,
-            "R2": -3.276,
+            "MAE": 0.9365,
+            "RMSE": 1.1978,
+            "MAPE": 31.89,
+            "Dir_Acc": 58.89,
+            "R2": -1.5622,
             "Naive_MAE": 0.7942,
-            "Improvement_Pct": -51.95
+            "Improvement_Pct": -17.91
         },
         "RandomForest": {
-            "MAE": 1.0143,
-            "RMSE": 1.3214,
-            "MAPE": 34.37,
-            "Dir_Acc": 51.71,
-            "R2": -2.118,
+            "MAE": 0.8637,
+            "RMSE": 1.1297,
+            "MAPE": 29.23,
+            "Dir_Acc": 57.75,
+            "R2": -1.2789,
             "Naive_MAE": 0.7942,
-            "Improvement_Pct": -27.72
+            "Improvement_Pct": -8.76
         }
     },
     "crude_oil": {
         "XGBoost": {
-            "MAE": 13.4213,
-            "RMSE": 16.1786,
-            "MAPE": 18.19,
-            "Dir_Acc": 38.06,
-            "R2": -0.7629,
+            "MAE": 13.4712,
+            "RMSE": 16.2699,
+            "MAPE": 18.21,
+            "Dir_Acc": 33.2,
+            "R2": -0.7829,
             "Naive_MAE": 11.4681,
-            "Improvement_Pct": -17.03
+            "Improvement_Pct": -17.47
         },
         "LightGBM": {
-            "MAE": 14.8263,
-            "RMSE": 16.8647,
-            "MAPE": 20.42,
+            "MAE": 15.1629,
+            "RMSE": 17.1148,
+            "MAPE": 20.93,
             "Dir_Acc": 34.21,
-            "R2": -0.9156,
+            "R2": -0.9728,
             "Naive_MAE": 11.4681,
-            "Improvement_Pct": -29.28
+            "Improvement_Pct": -32.22
         },
         "CatBoost": {
-            "MAE": 13.4574,
-            "RMSE": 16.4281,
-            "MAPE": 18.08,
+            "MAE": 13.6417,
+            "RMSE": 16.569,
+            "MAPE": 18.39,
             "Dir_Acc": 33.2,
-            "R2": -0.8177,
+            "R2": -0.849,
             "Naive_MAE": 11.4681,
-            "Improvement_Pct": -17.35
+            "Improvement_Pct": -18.95
         },
         "RandomForest": {
-            "MAE": 12.7078,
-            "RMSE": 15.7484,
-            "MAPE": 17.05,
-            "Dir_Acc": 41.09,
-            "R2": -0.6704,
+            "MAE": 11.3657,
+            "RMSE": 15.4608,
+            "MAPE": 14.8,
+            "Dir_Acc": 53.44,
+            "R2": -0.61,
             "Naive_MAE": 11.4681,
-            "Improvement_Pct": -10.81
+            "Improvement_Pct": 0.89
         }
     },
     "wheat": {
         "XGBoost": {
-            "MAE": 73.0797,
-            "RMSE": 90.4474,
-            "MAPE": 12.58,
-            "Dir_Acc": 54.83,
-            "R2": -3.2483,
+            "MAE": 43.7814,
+            "RMSE": 59.3494,
+            "MAPE": 7.47,
+            "Dir_Acc": 55.32,
+            "R2": -0.8292,
             "Naive_MAE": 44.2807,
-            "Improvement_Pct": -65.04
+            "Improvement_Pct": 1.13
         },
         "LightGBM": {
-            "MAE": 71.1956,
-            "RMSE": 88.831,
-            "MAPE": 12.23,
+            "MAE": 44.1995,
+            "RMSE": 59.6422,
+            "MAPE": 7.54,
             "Dir_Acc": 54.83,
-            "R2": -3.0978,
+            "R2": -0.8473,
             "Naive_MAE": 44.2807,
-            "Improvement_Pct": -60.78
+            "Improvement_Pct": 0.18
         },
         "CatBoost": {
-            "MAE": 72.7264,
-            "RMSE": 86.15,
-            "MAPE": 12.56,
+            "MAE": 70.4585,
+            "RMSE": 84.9668,
+            "MAPE": 12.12,
             "Dir_Acc": 54.83,
-            "R2": -2.8542,
+            "R2": -2.7491,
             "Naive_MAE": 44.2807,
-            "Improvement_Pct": -64.24
+            "Improvement_Pct": -59.12
         },
         "RandomForest": {
-            "MAE": 65.0193,
-            "RMSE": 79.2875,
-            "MAPE": 11.17,
-            "Dir_Acc": 54.83,
-            "R2": -2.2646,
+            "MAE": 47.7916,
+            "RMSE": 64.0971,
+            "MAPE": 8.1,
+            "Dir_Acc": 55.48,
+            "R2": -1.1335,
             "Naive_MAE": 44.2807,
-            "Improvement_Pct": -46.83
+            "Improvement_Pct": -7.93
         }
     }
 }
