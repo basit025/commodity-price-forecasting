@@ -7,8 +7,8 @@ import os
 import yfinance as yf
 
 # Import our backend ensemble engine
-from ensemble_inference import ensemble_predict
-from live_data_pipeline import ASSET_TICKERS, get_live_features
+from src.commodities.ensemble_inference import ensemble_predict
+from src.commodities.live_data_pipeline import ASSET_TICKERS, get_live_features
 import base64
 
 @st.cache_data
@@ -416,7 +416,7 @@ def get_live_chart_data(commodity_key):
         return df
     except Exception:
         # Fallback to local CSV if yfinance fails
-        file_path = os.path.join('./data', f'{commodity_key}.csv')
+        file_path = os.path.join('./data/commodities', f'{commodity_key}.csv')
         df = pd.read_csv(file_path, parse_dates=['Date'])
         return df.sort_values('Date').tail(90)
 
