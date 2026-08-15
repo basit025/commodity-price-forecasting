@@ -9,8 +9,8 @@ from lightgbm import Booster
 from catboost import CatBoostRegressor
 
 import shap
-from inference_utils import LSTMModel, GRUModel, TransformerModel, NBeatsModel, TFTModel
-from live_data_pipeline import get_live_features
+from src.commodities.inference_utils import LSTMModel, GRUModel, TransformerModel, NBeatsModel, TFTModel
+from src.commodities.live_data_pipeline import get_live_features
 
 # Configuration
 MODELS_DIR = './models/commodities/models_production'
