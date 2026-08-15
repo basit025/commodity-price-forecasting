@@ -9,4 +9,7 @@ env/
 .env/
 .venv/
 .env
+
+# Large Files
 models/
+data/

@@ -1,0 +1,187 @@
+{
+    "Equity": {
+        "7d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.031101541265507203,
+            "Path": "Equity_7d_LightGBM.pkl"
+        },
+        "14d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.04310286520065079,
+            "Path": "Equity_14d_XGBoost.pkl"
+        },
+        "28d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.06134992585301885,
+            "Path": "Equity_28d_LightGBM.pkl"
+        },
+        "42d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.07337064269787302,
+            "Path": "Equity_42d_LightGBM.pkl"
+        },
+        "60d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.08013124716000744,
+            "Path": "Equity_60d_XGBoost.pkl"
+        },
+        "90d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.09930978061743619,
+            "Path": "Equity_90d_LightGBM.pkl"
+        },
+        "120d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.11143513488090845,
+            "Path": "Equity_120d_XGBoost.pkl"
+        }
+    },
+    "MoneyMarket": {
+        "7d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.0036715843924923,
+            "Path": "MoneyMarket_7d_LightGBM.pkl"
+        },
+        "14d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.006808966809979376,
+            "Path": "MoneyMarket_14d_LightGBM.pkl"
+        },
+        "28d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.01264180922468693,
+            "Path": "MoneyMarket_28d_XGBoost.pkl"
+        },
+        "42d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.018713164950294656,
+            "Path": "MoneyMarket_42d_XGBoost.pkl"
+        },
+        "60d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.02732816649210438,
+            "Path": "MoneyMarket_60d_LightGBM.pkl"
+        },
+        "90d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.034386617946606704,
+            "Path": "MoneyMarket_90d_LightGBM.pkl"
+        },
+        "120d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.04025564351960441,
+            "Path": "MoneyMarket_120d_XGBoost.pkl"
+        }
+    },
+    "Income": {
+        "7d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.004068727170940786,
+            "Path": "Income_7d_LightGBM.pkl"
+        },
+        "14d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.007777089370609395,
+            "Path": "Income_14d_LightGBM.pkl"
+        },
+        "28d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.014320977632096214,
+            "Path": "Income_28d_XGBoost.pkl"
+        },
+        "42d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.02095948974719821,
+            "Path": "Income_42d_XGBoost.pkl"
+        },
+        "60d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.0311963977630587,
+            "Path": "Income_60d_XGBoost.pkl"
+        },
+        "90d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.039428814297094134,
+            "Path": "Income_90d_XGBoost.pkl"
+        },
+        "120d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.044486141390257035,
+            "Path": "Income_120d_LightGBM.pkl"
+        }
+    },
+    "Commodity": {
+        "7d": {
+            "Winning_Model": "LSTM",
+            "MAE": 0.03238411313612682,
+            "Path": "Commodity_7d_LSTM.pt"
+        },
+        "14d": {
+            "Winning_Model": "LSTM",
+            "MAE": 0.041913472976086295,
+            "Path": "Commodity_14d_LSTM.pt"
+        },
+        "28d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.058042165215536824,
+            "Path": "Commodity_28d_LightGBM.pkl"
+        },
+        "42d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.07269453286914607,
+            "Path": "Commodity_42d_XGBoost.pkl"
+        },
+        "60d": {
+            "Winning_Model": "LSTM",
+            "MAE": 0.09062213150340508,
+            "Path": "Commodity_60d_LSTM.pt"
+        },
+        "90d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.11239107340340014,
+            "Path": "Commodity_90d_XGBoost.pkl"
+        },
+        "120d": {
+            "Winning_Model": "LSTM",
+            "MAE": 0.13821027931500324,
+            "Path": "Commodity_120d_LSTM.pt"
+        }
+    },
+    "Balanced": {
+        "7d": {
+            "Winning_Model": "LSTM",
+            "MAE": 0.014020286644867862,
+            "Path": "Balanced_7d_LSTM.pt"
+        },
+        "14d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.020929833229628672,
+            "Path": "Balanced_14d_LightGBM.pkl"
+        },
+        "28d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.03115169797620664,
+            "Path": "Balanced_28d_XGBoost.pkl"
+        },
+        "42d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.04082841551474909,
+            "Path": "Balanced_42d_LightGBM.pkl"
+        },
+        "60d": {
+            "Winning_Model": "XGBoost",
+            "MAE": 0.05080739759687669,
+            "Path": "Balanced_60d_XGBoost.pkl"
+        },
+        "90d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.0625340190925852,
+            "Path": "Balanced_90d_LightGBM.pkl"
+        },
+        "120d": {
+            "Winning_Model": "LightGBM",
+            "MAE": 0.07407092125021197,
+            "Path": "Balanced_120d_LightGBM.pkl"
+        }
+    }
+}
